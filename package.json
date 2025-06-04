@@ -1,0 +1,16 @@
+{
+  "name": "kaf",
+  "version": "0.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "pnpm --filter demo dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
