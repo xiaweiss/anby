@@ -9,8 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "kaf": "workspace:*",
     "vue": "^3.5.13",
-    "kaf": "workspace:*"
+    "zeed-dom": "^0.15.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
