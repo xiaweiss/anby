@@ -2,15 +2,20 @@
   "name": "kaf",
   "version": "0.0.0",
   "description": "",
+  "type": "module",
   "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
     "dev": "pnpm --filter demo dev",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^3.2.2"
+  }
 }

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { parse } from 'kaf'
+import { parseHTML } from 'kaf'
 // import { parseHTML } from 'zeed-dom'
+import { Parser, DomHandler } from 'htmlparser2'
 
 const input = ref('')
 const output = ref('')
@@ -10,7 +11,15 @@ const onInput = (event: Event) => {
   const target = event.target as HTMLTextAreaElement
   input.value = target.value
 
-  output.value = parse(input.value)
+  const handler = new DomHandler()
+  const parser = new Parser(handler)
+
+  const html = input.value
+
+  // parser.parseComplete(html)
+  parseHTML(html)
+
+  output.value = input.value
 }
 
 </script>
