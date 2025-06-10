@@ -17,7 +17,7 @@ const onInput = (event: Event) => {
   const html = input.value
 
   // parser.parseComplete(html)
-  parseHTML(html)
+  parseHTML(html).doc
 
   output.value = input.value
 }

@@ -28,18 +28,27 @@ const State = {
 }
 
 const CharCodes = {
+  // tag wrapper
   Lt:  0x3c, // "<"
-  LowerA: 0x61, // "a"
-  LowerZ: 0x7a, // "z"
-  UpperA: 0x41, // "A"
-  UpperZ: 0x5a, // "Z"
   Slash: 0x2f, // "/"
   Gt: 0x3e, // ">"
+
+  // tag name
+  // LowerA: 0x61, // "a"
+  // LowerZ: 0x7a, // "z"
+  // UpperA: 0x41, // "A"
+  // UpperZ: 0x5a, // "Z"
+  // Zero: 0x30, // "0"
+  // Nine: 0x39, // "9"
+  // Hyphen: 0x2d, // "-"
+
+  // whitespace
   Space: 0x20, // " "
-  NewLine: 0xa, // "\n"
   Tab: 0x9, // "\t"
-  FormFeed: 0xc, // "\f"
+  NewLine: 0xa, // "\n"
   CarriageReturn: 0xd, // "\r"
+  FormFeed: 0xc, // "\f"
+  VerticalTab: 0xb, // "\v"
 }
 
 export const parseHTML = (input: string) => {
@@ -49,8 +58,6 @@ export const parseHTML = (input: string) => {
   while (d.index < d.input.length) {
     d.code = d.input.charCodeAt(d.index)
     d.char = d.input[d.index]
-
-    console.log(d)
 
     switch (d.state) {
       case State.Text: {
@@ -80,17 +87,8 @@ export const parseHTML = (input: string) => {
 
   finalize(d)
 
-  console.log(d.state)
-  console.log(d.start, d.index)
-  console.log(d.input.slice(d.start, d.index))
-  console.log(d.doc)
-
-  return d.doc
+  return d
 }
-
-// setTimeout(() => {
-//   parseHTML('<p>123</p>')
-// })
 
 const reset = () : Data => {
   const doc = {type: 'doc', content: []}
@@ -126,7 +124,8 @@ const stateBeforeTagName = (d: Data) => {
 }
 
 const stateInTagName = (d: Data) => {
-  if (isEndOfTagSection(d.code)) {
+  // 不带属性的标签
+  if (d.code === CharCodes.Gt) {
     elementStart(d)
 
     d.state = State.Text
@@ -142,6 +141,9 @@ const stateBeforeClosingTagName = (d: Data) => {
 const stateInClosingTagName = (d: Data) => {
   if (d.code === CharCodes.Gt) {
     elementEnd(d)
+
+    d.state = State.Text
+    d.start = d.index + 1
   }
 }
 
@@ -151,9 +153,19 @@ const finalize = (d: Data) => {
   }
 }
 
+const isWhitespace = (c: number): boolean => {
+    return (
+      c === CharCodes.Space ||
+      c === CharCodes.Tab ||
+      c === CharCodes.NewLine ||
+      c === CharCodes.CarriageReturn ||
+      c === CharCodes.FormFeed ||
+      c === CharCodes.VerticalTab
+    )
+}
 
 const elementStart = (d: Data) => {
-  const tagName = d.input.slice(d.start, d.index).toLowerCase()
+  const tagName = d.input.slice(d.start, d.index).toLowerCase().trim()
   const item = {type: tagName, content: []}
   const parentNode = d.stack[d.stack.length - 1]
   parentNode.content.push(item)
@@ -162,15 +174,17 @@ const elementStart = (d: Data) => {
 }
 
 const elementEnd = (d: Data) => {
-  console.log('====elementEnd')
-  d.stack.pop()
+  const tagName = d.input.slice(d.start, d.index).toLowerCase().trim()
+  const node = d.stack[d.stack.length - 1]
+
+  if (node.type === tagName) d.stack.pop()
 }
 
 const elementText = (d: Data) => {
   if (d.index > d.start) {
     const text = d.input.slice(d.start, d.index)
 
-    console.log('====onText', text)
+    console.log('====elementText', text)
 
     const parentNode = d.stack[d.stack.length - 1]
     if (parentNode) {
@@ -186,21 +200,13 @@ const elementText = (d: Data) => {
 }
 
 
-const isTagStartChar = (c: number): boolean => {
-  return (c >= CharCodes.LowerA && c <= CharCodes.LowerZ) || (c >= CharCodes.UpperA && c <= CharCodes.UpperZ)
-}
+// setTimeout(() => {
+//   const d = parseHTML(`111</p1>222</p2>`)
 
-const isEndOfTagSection = (c: number): boolean => {
-    return c === CharCodes.Slash || c === CharCodes.Gt || isWhitespace(c);
-}
-
-const isWhitespace = (c: number): boolean => {
-    return (
-        c === CharCodes.Space ||
-        c === CharCodes.NewLine ||
-        c === CharCodes.Tab ||
-        c === CharCodes.FormFeed ||
-        c === CharCodes.CarriageReturn
-    )
-}
+//   console.log(d.state)
+//   console.log(d.start, d.index)
+//   console.log(d.input.slice(d.start, d.index))
+//   console.log(d.stack[d.stack.length - 1])
+//   console.log(d.doc)
+// })
 
