@@ -151,6 +151,15 @@ const stateInTagName = (d: Data) => {
 
     d.state = State.Text
     d.start = d.index + 1
+
+  // 前面 content 内有 < 号（如 <p> 1 < 2 </p>）
+  } else if (d.code === CharCodes.Lt) {
+    const index = fastBackwardTo(d, CharCodes.Lt)
+
+    if (index) {
+      d.start = index
+      stateText(d)
+    }
   }
 }
 
@@ -185,10 +194,24 @@ const isWhitespace = (c: number): boolean => {
     )
 }
 
+const fastBackwardTo = (d: Data, c: number) => {
+  let index = d.index
+
+  while (index > 0) {
+    index -= 1
+    if (d.input.charCodeAt(index) === c) break
+  }
+
+  return index
+}
+
 const elementStart = (d: Data) => {
   let tagName = d.input.slice(d.start, d.index).toLowerCase().trim()
   let isSelfClosing = tagName.endsWith('/')
   if (isSelfClosing) tagName = tagName.slice(0, -1).trim()
+
+  const isComment = tagName.startsWith('!--') && tagName.endsWith('--')
+  if (isComment) return
 
   const item = {type: tagName}
   const parentNode = d.stack[d.stack.length - 1]
@@ -230,14 +253,13 @@ const elementText = (d: Data) => {
   }
 }
 
+setTimeout(() => {
+  const d = parseHTML(`<p> 1 < 2 </p>`)
 
-// setTimeout(() => {
-//   const d = parseHTML(`<p>1</p>`)
-
-//   console.log(d.state)
-//   console.log(d.start, d.index)
-//   console.log(d.input.slice(d.start, d.index))
-//   console.log(d.stack[d.stack.length - 1])
-//   console.log(d.doc)
-// })
+  console.log(d.state)
+  console.log(d.start, d.index)
+  console.log(d.input.slice(d.start, d.index))
+  console.log(d.stack[d.stack.length - 1])
+  console.log(d.doc)
+})
 

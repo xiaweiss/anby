@@ -223,9 +223,41 @@ test('自闭合标签 <p>11<foo />22</p>', () => {
   })
 })
 
-// test('注释 <!-- comment -->', () => {
-//   expect(parseHTML('<!-- comment -->').doc).toEqual({
-//     type: 'doc',
-//     content: []
-//   })
-// })
+test('注释 <p><!-- comment -->123</p>', () => {
+  expect(parseHTML('<p><!-- comment -->123</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test('内容有 > 号 <p> 2 > 1 </p>', () => {
+  expect(parseHTML('<p> 2 > 1 </p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: ' 2 > 1 '
+      }]
+    }]
+  })
+})
+
+test('内容有 < 号 <p> 1 < 2 </p>', () => {
+  expect(parseHTML('<p> 1 < 2 </p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: ' 1 < 2 '
+      }]
+    }]
+  })
+})
