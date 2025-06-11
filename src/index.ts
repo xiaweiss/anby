@@ -111,7 +111,7 @@ export const parseHTML = (input: string) => {
 }
 
 const reset = () : Data => {
-  const doc = {type: 'doc', content: []}
+  const doc = {type: 'doc'}
   return {
     input: '',
     state: State.Text,
@@ -190,8 +190,10 @@ const elementStart = (d: Data) => {
   let isSelfClosing = tagName.endsWith('/')
   if (isSelfClosing) tagName = tagName.slice(0, -1).trim()
 
-  const item = {type: tagName, content: []}
+  const item = {type: tagName}
   const parentNode = d.stack[d.stack.length - 1]
+
+  if (!parentNode.content) parentNode.content = []
   parentNode.content.push(item)
 
   if (!(isSelfClosing || SelfClosingTags[tagName])) {
@@ -216,6 +218,7 @@ const elementText = (d: Data) => {
 
     const parentNode = d.stack[d.stack.length - 1]
     if (parentNode) {
+      if (!parentNode.content) parentNode.content = []
       const lastChild = parentNode.content[parentNode.content.length - 1]
 
       if (lastChild?.type === 'text') {
@@ -229,7 +232,7 @@ const elementText = (d: Data) => {
 
 
 // setTimeout(() => {
-//   const d = parseHTML(`<p></p>`)
+//   const d = parseHTML(`<p>1</p>`)
 
 //   console.log(d.state)
 //   console.log(d.start, d.index)

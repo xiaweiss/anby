@@ -18,8 +18,7 @@ test('空标签 <p></p>', () => {
   expect(parseHTML('<p></p>').doc).toEqual({
     type: 'doc',
     content: [{
-      type: 'p',
-      content: []
+      type: 'p'
     }]
   })
 })
@@ -97,8 +96,7 @@ test('开始标签后面有换行 <p\n></p><div>123</div>', () => {
     type: 'doc',
     content: [
       {
-        type: 'p',
-        content: []
+        type: 'p'
       },
       {
         type: 'div',
@@ -116,8 +114,7 @@ test('开始标签前面有空格 < p></p><div>123</div>', () => {
     type: 'doc',
     content: [
       {
-        type: 'p',
-        content: []
+        type: 'p'
       },
       {
         type: 'div',
@@ -142,8 +139,7 @@ test('自闭合标签 <p>11<br>22</p>', () => {
             text: '11'
           },
           {
-            type: 'br',
-            content: []
+            type: 'br'
           },
           {
             type: 'text',
@@ -167,8 +163,7 @@ test('自闭合标签 <p>11<foo />22</p>', () => {
             text: '11'
           },
           {
-            type: 'foo',
-            content: []
+            type: 'foo'
           },
           {
             type: 'text',
@@ -192,8 +187,7 @@ test('自闭合标签 <p>11<foo/>22</p>', () => {
             text: '11'
           },
           {
-            type: 'foo',
-            content: []
+            type: 'foo'
           },
           {
             type: 'text',
@@ -217,8 +211,7 @@ test('自闭合标签 <p>11<foo />22</p>', () => {
             text: '11'
           },
           {
-            type: 'foo',
-            content: []
+            type: 'foo'
           },
           {
             type: 'text',
