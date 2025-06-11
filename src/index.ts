@@ -51,6 +51,26 @@ const CharCodes = {
   VerticalTab: 0xb, // "\v"
 }
 
+export const SelfClosingTags: Record<string, boolean> = {
+  'area': true,
+  'base': true,
+  'br': true,
+  'col': true,
+  'embed': true,
+  'hr': true,
+  'img': true,
+  'input': true,
+  'link': true,
+  'meta': true,
+  'param': true,
+  'source': true,
+  'track': true,
+  'wbr': true
+}
+
+/**
+ * @see https://wx7vyvopbx.feishu.cn/docx/ST7add9rtohkcVxz11gcUFvxnUh?from=from_copylink
+ */
 export const parseHTML = (input: string) => {
   const d: Data = reset()
   d.input = input
@@ -117,7 +137,8 @@ const stateText = (d: Data) => {
 const stateBeforeTagName = (d: Data) => {
   if (d.code === CharCodes.Slash) {
     d.state = State.BeforeClosingTagName
-  } else {
+
+  } else if (!isWhitespace(d.code)) {
     d.state = State.InTagName
     d.start = d.index
   }
@@ -165,11 +186,18 @@ const isWhitespace = (c: number): boolean => {
 }
 
 const elementStart = (d: Data) => {
-  const tagName = d.input.slice(d.start, d.index).toLowerCase().trim()
+  let tagName = d.input.slice(d.start, d.index).toLowerCase().trim()
+  let isSelfClosing = tagName.endsWith('/')
+  if (isSelfClosing) tagName = tagName.slice(0, -1).trim()
+
   const item = {type: tagName, content: []}
   const parentNode = d.stack[d.stack.length - 1]
   parentNode.content.push(item)
-  d.stack.push(item)
+
+  if (!(isSelfClosing || SelfClosingTags[tagName])) {
+    d.stack.push(item)
+  }
+
   console.log('====elementStart', item)
 }
 
@@ -201,7 +229,7 @@ const elementText = (d: Data) => {
 
 
 // setTimeout(() => {
-//   const d = parseHTML(`111</p1>222</p2>`)
+//   const d = parseHTML(`<p></p>`)
 
 //   console.log(d.state)
 //   console.log(d.start, d.index)

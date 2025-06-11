@@ -14,6 +14,16 @@ test('简单标签 <p>123</p>', () => {
   })
 })
 
+test('空标签 <p></p>', () => {
+  expect(parseHTML('<p></p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: []
+    }]
+  })
+})
+
 test('多个标签 <p>123</p><div>456</div>', () => {
   expect(parseHTML('<p>123</p><div>456</div>').doc).toEqual({
     type: 'doc',
@@ -115,6 +125,106 @@ test('开始标签前面有空格 < p></p><div>123</div>', () => {
           type: 'text',
           text: '123'
         }]
+      }
+    ]
+  })
+})
+
+test('自闭合标签 <p>11<br>22</p>', () => {
+  expect(parseHTML('<p>11<br>22</p>').doc).toEqual({
+    type: 'doc',
+    content: [
+      {
+        type: 'p',
+        content: [
+          {
+            type: 'text',
+            text: '11'
+          },
+          {
+            type: 'br',
+            content: []
+          },
+          {
+            type: 'text',
+            text: '22'
+          }
+        ]
+      }
+    ]
+  })
+})
+
+test('自闭合标签 <p>11<foo />22</p>', () => {
+  expect(parseHTML('<p>11<foo />22</p>').doc).toEqual({
+    type: 'doc',
+    content: [
+      {
+        type: 'p',
+        content: [
+          {
+            type: 'text',
+            text: '11'
+          },
+          {
+            type: 'foo',
+            content: []
+          },
+          {
+            type: 'text',
+            text: '22'
+          }
+        ]
+      }
+    ]
+  })
+})
+
+test('自闭合标签 <p>11<foo/>22</p>', () => {
+  expect(parseHTML('<p>11<foo/>22</p>').doc).toEqual({
+    type: 'doc',
+    content: [
+      {
+        type: 'p',
+        content: [
+          {
+            type: 'text',
+            text: '11'
+          },
+          {
+            type: 'foo',
+            content: []
+          },
+          {
+            type: 'text',
+            text: '22'
+          }
+        ]
+      }
+    ]
+  })
+})
+
+test('自闭合标签 <p>11<foo />22</p>', () => {
+  expect(parseHTML('<p>11<foo />22</p>').doc).toEqual({
+    type: 'doc',
+    content: [
+      {
+        type: 'p',
+        content: [
+          {
+            type: 'text',
+            text: '11'
+          },
+          {
+            type: 'foo',
+            content: []
+          },
+          {
+            type: 'text',
+            text: '22'
+          }
+        ]
       }
     ]
   })
