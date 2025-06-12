@@ -1,10 +1,12 @@
 type Data = {
   input: string
-  code: number
-  char: string
 
   // state
   state: typeof State[keyof typeof State]
+  code: number
+  char: string
+  attrName: string
+  attrQuote: number
 
   // pos
   index: number
@@ -18,13 +20,19 @@ type Data = {
 
 const State = {
   Text: 'Text',
+
+  // tag
   BeforeTagName: 'BeforeTagName',
   InTagName: 'InTagName',
-  BeforeAttributeName: 'BeforeAttributeName',
-  InAttributeName: 'InAttributeName',
   BeforeClosingTagName: 'BeforeClosingTagName',
   InClosingTagName: 'InClosingTagName',
   AfterClosingTagName: 'AfterClosingTagName',
+
+  // attr
+  BeforeAttrName: 'BeforeAttrName',
+  InAttrName: 'InAttrName',
+  BeforeAttrValue: 'BeforeAttrValue',
+  InAttrValue: 'InAttrValue',
 }
 
 const CharCodes = {
@@ -32,6 +40,11 @@ const CharCodes = {
   Lt:  0x3c, // "<"
   Slash: 0x2f, // "/"
   Gt: 0x3e, // ">"
+
+  // attr
+  Eq: 0x3d, // "="
+  DoubleQuote: 0x22, // '"'
+  SingleQuote: 0x27, // "'"
 
   // tag name
   // LowerA: 0x61, // "a"
@@ -100,6 +113,22 @@ export const parseHTML = (input: string) => {
         stateInClosingTagName(d)
         break
       }
+      case State.BeforeAttrName: {
+        stateBeforeAttrName(d)
+        break
+      }
+      case State.InAttrName: {
+        stateInAttrName(d)
+        break
+      }
+      case State.BeforeAttrValue: {
+        stateBeforeAttrValue(d)
+        break
+      }
+      case State.InAttrValue: {
+        stateInAttrValue(d)
+        break
+      }
     }
 
     d.index += 1
@@ -114,12 +143,20 @@ const reset = () : Data => {
   const doc = {type: 'doc'}
   return {
     input: '',
+
+    // state
     state: State.Text,
+    code: 0,
+    char: '',
+    attrName: '',
+    attrQuote: 0,
+
+    // pos
     index: 0,
     start: 0,
     end: 0,
-    code: 0,
-    char: '',
+
+    // json
     stack: [doc],
     doc
   }
@@ -152,6 +189,13 @@ const stateInTagName = (d: Data) => {
     d.state = State.Text
     d.start = d.index + 1
 
+  // 可能带属性的标签
+  } else if (isWhitespace(d.code)) {
+    elementStart(d)
+
+    d.state = State.BeforeAttrName
+    d.start = d.index + 1
+
   // 前面 content 内有 < 号（如 <p> 1 < 2 </p>）
   } else if (d.code === CharCodes.Lt) {
     const index = fastBackwardTo(d, CharCodes.Lt)
@@ -171,6 +215,66 @@ const stateBeforeClosingTagName = (d: Data) => {
 const stateInClosingTagName = (d: Data) => {
   if (d.code === CharCodes.Gt) {
     elementEnd(d)
+
+    d.state = State.Text
+    d.start = d.index + 1
+  }
+}
+
+const stateBeforeAttrName = (d: Data) => {
+  if (d.code === CharCodes.Gt) {
+    d.state = State.Text
+    d.start = d.index + 1
+
+  } else if (!isWhitespace(d.code)) {
+    d.state = State.InAttrName
+    d.start = d.index
+  }
+}
+
+const stateInAttrName = (d: Data) => {
+  if (d.code === CharCodes.Eq) {
+    // 属性名转为小写
+    d.attrName = d.input.slice(d.start, d.index).toLowerCase().trim()
+
+    d.state = State.BeforeAttrValue
+    d.start = d.index + 1
+  }
+}
+
+const stateBeforeAttrValue = (d: Data) => {
+  // 引号
+  if (d.code === CharCodes.DoubleQuote || d.code === CharCodes.SingleQuote) {
+    d.attrQuote = d.code
+    d.state = State.InAttrValue
+    d.start = d.index + 1
+
+  // 无引号
+  } else if (!isWhitespace(d.code)) {
+    d.attrQuote = 0
+    d.state = State.InAttrValue
+    d.start = d.index
+  }
+}
+
+const stateInAttrValue = (d: Data) => {
+  // 有引号时，直接去找对应的结尾引号
+  if (d.attrQuote) {
+    if (d.code === d.attrQuote) {
+      elementAttr(d)
+
+      d.state = State.BeforeAttrName
+      d.start = d.index + 1
+    }
+
+  } else if (isWhitespace(d.code)) {
+    elementAttr(d)
+
+    d.state = State.BeforeAttrName
+    d.start = d.index + 1
+
+  } else if (d.code === CharCodes.Gt) {
+    elementAttr(d)
 
     d.state = State.Text
     d.start = d.index + 1
@@ -226,6 +330,18 @@ const elementStart = (d: Data) => {
   console.log('====elementStart', item)
 }
 
+const elementAttr = (d: Data) => {
+  const attrName = d.attrName
+  const attrValue = d.input.slice(d.start, d.index).trim()
+  console.log('====elementAttr', attrName, attrValue)
+
+  const node = d.stack[d.stack.length - 1]
+  if (!node.attrs) node.attrs = {}
+
+  // todo: 解码 attrValue
+  node.attrs[attrName] = attrValue
+}
+
 const elementEnd = (d: Data) => {
   const tagName = d.input.slice(d.start, d.index).toLowerCase().trim()
   const node = d.stack[d.stack.length - 1]
@@ -254,11 +370,14 @@ const elementText = (d: Data) => {
 }
 
 setTimeout(() => {
-  const d = parseHTML(`<p> 1 < 2 </p>`)
+  // const d = parseHTML(`<p> 1 < 2 </p>` )
+  const d = parseHTML(`<p> 1 < 2 </p>` )
 
   console.log(d.state)
   console.log(d.start, d.index)
   console.log(d.input.slice(d.start, d.index))
+  console.log(d.attrName)
+  console.log(d.attrQuote)
   console.log(d.stack[d.stack.length - 1])
   console.log(d.doc)
 })

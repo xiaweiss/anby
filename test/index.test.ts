@@ -261,3 +261,56 @@ test('内容有 < 号 <p> 1 < 2 </p>', () => {
     }]
   })
 })
+
+test(`标签属性 <p aa="aa" bb='bb' cc=cc>123</p>`, () => {
+  expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        aa: 'aa',
+        bb: 'bb',
+        cc: 'cc'
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test(`标签松散属性 <p aa = "aa"  bb = 'bb'  cc = cc >123</p>`, () => {
+  expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        aa: 'aa',
+        bb: 'bb',
+        cc: 'cc'
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test(`标签属性带尖括号 <p aa="1 < 2"  bb='1 > 2'>123</p>`, () => {
+  expect(parseHTML(`<p aa="1 < 2" bb='1 > 2'>123</p>`).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        aa: '1 < 2',
+        bb: '1 > 2'
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
