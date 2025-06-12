@@ -198,12 +198,7 @@ const stateInTagName = (d: Data) => {
 
   // 前面 content 内有 < 号（如 <p> 1 < 2 </p>）
   } else if (d.code === CharCodes.Lt) {
-    const index = fastBackwardTo(d, CharCodes.Lt)
-
-    if (index) {
-      d.start = index
-      stateText(d)
-    }
+    backwardTo(d, CharCodes.Lt)
   }
 }
 
@@ -222,9 +217,15 @@ const stateInClosingTagName = (d: Data) => {
 }
 
 const stateBeforeAttrName = (d: Data) => {
+  console.log('====debugger====')
+
   if (d.code === CharCodes.Gt) {
     d.state = State.Text
     d.start = d.index + 1
+
+  // 前面 content 内有 < 号（如 <p> 1 < 2 </p>）
+  } else if (d.code === CharCodes.Lt) {
+    backwardTo(d, CharCodes.Lt)
 
   } else if (!isWhitespace(d.code)) {
     d.state = State.InAttrName
@@ -298,7 +299,7 @@ const isWhitespace = (c: number): boolean => {
     )
 }
 
-const fastBackwardTo = (d: Data, c: number) => {
+const backwardTo = (d: Data, c: number) => {
   let index = d.index
 
   while (index > 0) {
@@ -306,7 +307,13 @@ const fastBackwardTo = (d: Data, c: number) => {
     if (d.input.charCodeAt(index) === c) break
   }
 
-  return index
+  if (index) {
+    d.start = index
+    console.log( d.start, d.index)
+
+    console.log(d.input.slice(d.start, d.index))
+    stateText(d)
+  }
 }
 
 const elementStart = (d: Data) => {
@@ -371,7 +378,7 @@ const elementText = (d: Data) => {
 
 setTimeout(() => {
   // const d = parseHTML(`<p> 1 < 2 </p>` )
-  const d = parseHTML(`<p> 1 < 2 </p>` )
+  const d = parseHTML(`<p>1 < 2 <` )
 
   console.log(d.state)
   console.log(d.start, d.index)
