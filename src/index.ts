@@ -5,6 +5,7 @@ type Data = {
   state: typeof State[keyof typeof State]
   code: number
   char: string
+  tag: any
   attrName: string
   attrQuote: number
 
@@ -148,6 +149,7 @@ const reset = () : Data => {
     state: State.Text,
     code: 0,
     char: '',
+    tag: null,
     attrName: '',
     attrQuote: 0,
 
@@ -184,21 +186,29 @@ const stateBeforeTagName = (d: Data) => {
 const stateInTagName = (d: Data) => {
   // 不带属性的标签
   if (d.code === CharCodes.Gt) {
+    tagName(d)
     elementStart(d)
 
     d.state = State.Text
     d.start = d.index + 1
 
-  // 可能带属性的标签
-  } else if (isWhitespace(d.code)) {
-    elementStart(d)
-
-    d.state = State.BeforeAttrName
-    d.start = d.index + 1
-
   // 前面 content 内有 < 号（如 <p> 1 < 2 </p>）
   } else if (d.code === CharCodes.Lt) {
     backwardTo(d, CharCodes.Lt)
+
+  // 自闭合标签
+  } else if (d.code === CharCodes.Slash) {
+    tagName(d)
+    elementStart(d)
+
+    d.state = State.InClosingTagName
+
+  // 可能带属性的标签
+  } else if (isWhitespace(d.code)) {
+    // elementStart(d)
+
+    // d.state = State.BeforeAttrName
+    // d.start = d.index + 1
   }
 }
 
@@ -217,8 +227,6 @@ const stateInClosingTagName = (d: Data) => {
 }
 
 const stateBeforeAttrName = (d: Data) => {
-  console.log('====debugger====')
-
   if (d.code === CharCodes.Gt) {
     d.state = State.Text
     d.start = d.index + 1
@@ -316,25 +324,26 @@ const backwardTo = (d: Data, c: number) => {
   }
 }
 
-const elementStart = (d: Data) => {
-  let tagName = d.input.slice(d.start, d.index).toLowerCase().trim()
-  let isSelfClosing = tagName.endsWith('/')
-  if (isSelfClosing) tagName = tagName.slice(0, -1).trim()
-
+const tagName = (d: Data) => {
+  const tagName = d.input.slice(d.start, d.index).toLowerCase().trim().replace(/\/$/, '')
   const isComment = tagName.startsWith('!--') && tagName.endsWith('--')
-  if (isComment) return
 
-  const item = {type: tagName}
-  const parentNode = d.stack[d.stack.length - 1]
-
-  if (!parentNode.content) parentNode.content = []
-  parentNode.content.push(item)
-
-  if (!(isSelfClosing || SelfClosingTags[tagName])) {
-    d.stack.push(item)
+  if (isComment) {
+    d.tag = null
+    return
   }
 
-  console.log('====elementStart', item)
+  d.tag = {type: tagName}
+}
+
+const elementStart = (d: Data) => {
+  // parent node
+  const node = d.stack[d.stack.length - 1]
+
+  if (!node.content) node.content = []
+  node.content.push(d.tag)
+  d.stack.push(d.tag)
+  console.log('====elementStart', d.tag)
 }
 
 const elementAttr = (d: Data) => {
@@ -350,8 +359,11 @@ const elementAttr = (d: Data) => {
 }
 
 const elementEnd = (d: Data) => {
+  console.log('====elementEnd')
   const tagName = d.input.slice(d.start, d.index).toLowerCase().trim()
   const node = d.stack[d.stack.length - 1]
+
+  console.log('tagName', tagName)
 
   if (node.type === tagName) d.stack.pop()
 }
@@ -378,11 +390,12 @@ const elementText = (d: Data) => {
 
 setTimeout(() => {
   // const d = parseHTML(`<p> 1 < 2 </p>` )
-  const d = parseHTML(`<p>1 < 2 <` )
+  const d = parseHTML(`<br`)
 
   console.log(d.state)
   console.log(d.start, d.index)
   console.log(d.input.slice(d.start, d.index))
+  console.log(d.tag)
   console.log(d.attrName)
   console.log(d.attrQuote)
   console.log(d.stack[d.stack.length - 1])
