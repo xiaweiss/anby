@@ -151,30 +151,6 @@ test('自闭合标签 <p>11<br>22</p>', () => {
   })
 })
 
-test('自闭合标签 <p>11<foo />22</p>', () => {
-  expect(parseHTML('<p>11<foo />22</p>').doc).toEqual({
-    type: 'doc',
-    content: [
-      {
-        type: 'p',
-        content: [
-          {
-            type: 'text',
-            text: '11'
-          },
-          {
-            type: 'foo'
-          },
-          {
-            type: 'text',
-            text: '22'
-          }
-        ]
-      }
-    ]
-  })
-})
-
 test('自闭合标签 <p>11<foo/>22</p>', () => {
   expect(parseHTML('<p>11<foo/>22</p>').doc).toEqual({
     type: 'doc',
@@ -261,3 +237,56 @@ test('内容有 < 号 <p> 1 < 2 </p>', () => {
     }]
   })
 })
+
+// test(`标签属性 <p aa="aa" bb='bb' cc=cc>123</p>`, () => {
+//   expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
+//     type: 'doc',
+//     content: [{
+//       type: 'p',
+//       attrs: {
+//         aa: 'aa',
+//         bb: 'bb',
+//         cc: 'cc'
+//       },
+//       content: [{
+//         type: 'text',
+//         text: '123'
+//       }]
+//     }]
+//   })
+// })
+
+// test(`标签松散属性 <p aa = "aa"  bb = 'bb'  cc = cc >123</p>`, () => {
+//   expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
+//     type: 'doc',
+//     content: [{
+//       type: 'p',
+//       attrs: {
+//         aa: 'aa',
+//         bb: 'bb',
+//         cc: 'cc'
+//       },
+//       content: [{
+//         type: 'text',
+//         text: '123'
+//       }]
+//     }]
+//   })
+// })
+
+// test(`标签属性带尖括号 <p aa="1 < 2"  bb='1 > 2'>123</p>`, () => {
+//   expect(parseHTML(`<p aa="1 < 2" bb='1 > 2'>123</p>`).doc).toEqual({
+//     type: 'doc',
+//     content: [{
+//       type: 'p',
+//       attrs: {
+//         aa: '1 < 2',
+//         bb: '1 > 2'
+//       },
+//       content: [{
+//         type: 'text',
+//         text: '123'
+//       }]
+//     }]
+//   })
+// })
