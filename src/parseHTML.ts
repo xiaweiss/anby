@@ -3,7 +3,15 @@ interface Node {
   content?: Node[]
   text?: string
   attrs?: Record<string, string | number | boolean>
-  marks?: {type: string}[]
+  marks?: Mark[]
+}
+
+interface Mark {
+  type: string
+}
+
+interface MarkRule extends Node {
+  mark: Mark
 }
 
 interface Data {
@@ -17,6 +25,7 @@ interface Data {
   tag: Node | null
   attrName: string
   attrQuote: number
+  marks: Mark[] | null
 
   // pos
   index: number
@@ -34,7 +43,7 @@ export interface ParseHTMLConfig {
   /** 自闭合标签 */
   selfClose?: string[]
   /** 节点解析为编辑器 marks */
-  marks?: Node[]
+  markRule?: MarkRule[]
 }
 
 
@@ -169,6 +178,7 @@ const reset = () : Data => {
     tag: null,
     attrName: '',
     attrQuote: 0,
+    marks: null,
 
     // pos
     index: 0,
@@ -404,9 +414,21 @@ const elementStart = (d: Data, gt?: boolean) => {
   const node = d.stack[d.stack.length - 1]
 
   if (d.tag) {
-    if (!node.content) node.content = []
-    node.content.push(d.tag)
-    d.stack.push(d.tag)
+    // 匹配出 type 和 attrs 都符合的 mark
+    if (d.config.markRule) {
+      const marks = d.config.markRule.filter(rule => rule.type === d.tag!.type && Object.keys(rule.attrs || {}).every(key => rule.attrs![key] === d.tag!.attrs?.[key]))
+      if (marks && marks.length) d.marks = marks.map(rule => rule.mark)
+      else d.marks = null
+    }
+
+    if (d.marks) {
+      console.log('====elementStart with marks', d.tag, d.marks)
+
+    } else {
+      if (!node.content) node.content = []
+      node.content.push(d.tag)
+      d.stack.push(d.tag)
+    }
   }
 
 
@@ -419,21 +441,29 @@ const elementStart = (d: Data, gt?: boolean) => {
 
 const elementEnd = (d: Data) => {
   console.log('====elementEnd', d.tag)
-  if (d.tag) d.stack.pop()
+  if (d.tag) {
+    if (d.marks) {
+      d.marks = null
+    } else {
+      d.stack.pop()
+    }
+  }
 }
 
 const elementText = (d: Data) => {
   if (d.index > d.start) {
     const text = d.input.slice(d.start, d.index)
 
-    // console.log('====elementText', text)
+    console.log('====elementText', text)
 
     const parentNode = d.stack[d.stack.length - 1]
     if (parentNode) {
       if (!parentNode.content) parentNode.content = []
       const lastChild = parentNode.content[parentNode.content.length - 1]
 
-      if (lastChild?.type === 'text') {
+      if (d.marks) {
+        parentNode.content.push({type: 'text', text, marks: d.marks})
+      } else if (lastChild?.type === 'text') {
         lastChild.text += text
       } else {
         parentNode.content.push({type: 'text', text})
@@ -462,11 +492,14 @@ setTimeout(() => {
   //   }
   // })
 
-  // const d = parseHTML(`<p>文字<strong>加粗</strong></p>`, {
-  const d = parseHTML(`<p>文字<strong>加粗</strong>`, {
-    marks: [{
+  // todo: 看下 mark 的 attrs 如何处理？
+  // todo: 看下 mark 的嵌套情况 如何处理？
+
+  const d = parseHTML(`<p>文字<strong>加粗</strong></p>`, {
+  // const d = parseHTML(`<p>文字<strong>加粗</strong>`, {
+    markRule: [{
       type: 'strong',
-      marks: [{type: 'bold'}],
+      mark: {type: 'bold'},
     }]
   })
 
@@ -479,4 +512,3 @@ setTimeout(() => {
 
   // console.log(JSON.stringify(d.doc))
 })
-

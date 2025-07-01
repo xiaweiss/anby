@@ -368,7 +368,7 @@ test(`标签属性带尖括号 <p aa="1 < 2"  bb='1 > 2'>123</p>`, () => {
 })
 
 test(`标签别名 <p>123</p>`, () => {
-  expect(parseHTML('<p>11<br>22</p>', {alias: {p: 'paragraph'}}).doc).toEqual({
+  expect(parseHTML('<p>123</p>', {alias: {p: 'paragraph'}}).doc).toEqual({
     type: 'doc',
     content: [{
       type: 'paragraph',
@@ -421,9 +421,9 @@ test(`自闭合标签别名 <p>11<br>22</p>`, () => {
 
 test(`转换为编辑器mark <p><strong>加粗</strong></p>`, () => {
   expect(parseHTML('<p><strong>加粗</strong></p>', {
-    marks: [{
+    markRule: [{
       type: 'strong',
-      marks: [{type: 'bold'}]
+      mark: {type: 'bold'}
     }]
   }).doc).toEqual({
     type: 'doc',
