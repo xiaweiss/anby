@@ -1,3 +1,8 @@
+// import { tidyDOM, vdom } from 'zeed-dom'
+
+// const dom = vdom('<p>111</p>  <p>222</p>')
+// console.log(dom)
+
 interface Node {
   type: string
   content?: Node[]
@@ -14,6 +19,7 @@ type Data = {
   code: number
   char: string
   tag: Node | null
+  attrName: string
   attrQuote: number
 
   // pos
@@ -34,6 +40,7 @@ const State = {
   InTagName: 'InTagName',
   BeforeClosingTagName: 'BeforeClosingTagName',
   InClosingTagName: 'InClosingTagName',
+  InExclamation: 'InExclamation',
 
   // attr
   BeforeAttrName: 'BeforeAttrName',
@@ -47,6 +54,7 @@ const CharCodes = {
   Lt:  0x3c, // "<"
   Slash: 0x2f, // "/"
   Gt: 0x3e, // ">"
+  Exclamation: 0x21, // "!"
 
   // attr
   Eq: 0x3d, // "="
@@ -119,6 +127,18 @@ export const parseHTML = (input: string) => {
         stateInAttrName(d)
         break
       }
+      case State.BeforeAttrValue: {
+        stateBeforeAttrValue(d)
+        break
+      }
+      case State.InAttrValue: {
+        stateInAttrValue(d)
+        break
+      }
+      case State.InExclamation: {
+        stateInExclamation(d)
+        break
+      }
     }
 
     d.index += 1
@@ -139,6 +159,7 @@ const reset = () : Data => {
     code: 0,
     char: '',
     tag: null,
+    attrName: '',
     attrQuote: 0,
 
     // pos
@@ -164,6 +185,11 @@ const stateText = (d: Data) => {
 const stateBeforeTagName = (d: Data) => {
   if (d.code === CharCodes.Slash) {
     d.state = State.BeforeClosingTagName
+
+  // 注释 or 条件注释 or doctype
+  } else if (d.code === CharCodes.Exclamation) {
+    d.state = State.InExclamation
+    d.start = d.index - 1
 
   } else if (!isWhitespace(d.code)) {
     d.state = State.InTagName
@@ -246,12 +272,7 @@ const stateBeforeAttrName = (d: Data) => {
 }
 
 const stateInAttrName = (d: Data) => {
-  if (d.code === CharCodes.Eq) {
-    attrName(d)
-    d.state = State.BeforeAttrValue
-    d.start = d.index + 1
-
-  } else if (d.code === CharCodes.Gt) {
+  if (d.code === CharCodes.Gt) {
     attrName(d)
     elementStart(d, true)
     if (d.tag && SelfClosingTags[d.tag.type]) elementEnd(d)
@@ -259,10 +280,62 @@ const stateInAttrName = (d: Data) => {
     d.state = State.Text
     d.start = d.index + 1
 
+  } else if (d.code === CharCodes.Eq) {
+    attrName(d)
+    d.state = State.BeforeAttrValue
+    d.start = d.index + 1
 
   } else if (isWhitespace(d.code)) {
     attrName(d)
     d.state = State.BeforeAttrName
+    d.start = d.index + 1
+  }
+}
+
+const stateBeforeAttrValue = (d: Data) => {
+  // 引号
+  if (d.code === CharCodes.DoubleQuote || d.code === CharCodes.SingleQuote) {
+    d.attrQuote = d.code
+    d.state = State.InAttrValue
+    d.start = d.index + 1
+
+  // 无引号
+  } else if (!isWhitespace(d.code)) {
+    d.attrQuote = 0
+    d.state = State.InAttrValue
+    d.start = d.index
+  }
+}
+
+const stateInAttrValue = (d: Data) => {
+  // 有引号时，直接去找对应的结尾引号
+  if (d.attrQuote) {
+    if (d.code === d.attrQuote) {
+      attrValue(d)
+
+      d.state = State.BeforeAttrName
+      d.start = d.index + 1
+    }
+
+  } else if (d.code === CharCodes.Gt) {
+    attrValue(d)
+    elementStart(d, true)
+
+    d.state = State.Text
+    d.start = d.index + 1
+
+  } else if (isWhitespace(d.code)) {
+    attrValue(d)
+
+    d.state = State.BeforeAttrName
+    d.start = d.index + 1
+  }
+}
+
+const stateInExclamation = (d: Data) => {
+  if (d.code === CharCodes.Gt) {
+    // 这里的内容不会被解析，跳过
+    d.state = State.Text
     d.start = d.index + 1
   }
 }
@@ -308,12 +381,16 @@ const tagName = (d: Data) => {
 }
 
 const attrName = (d: Data) => {
-  if (d.tag) {
-    // 属性名转为小写
-    const attrName = d.input.slice(d.start, d.index).toLowerCase().trim()
-    if (!d.tag.attrs) d.tag.attrs = {}
-    d.tag.attrs[attrName] = true // 默认值为 true
-  }
+  // 属性名转为小写
+  const attrName = d.input.slice(d.start, d.index).toLowerCase().trim()
+  if (!d.tag!.attrs) d.tag!.attrs = {}
+  d.tag!.attrs[attrName] = true // 默认值为 true
+  d.attrName = attrName
+}
+
+const attrValue = (d: Data) => {
+  const attrValue = d.input.slice(d.start, d.index)
+  d.tag!.attrs![d.attrName] = attrValue
 }
 
 const elementStart = (d: Data, gt?: boolean) => {
@@ -360,8 +437,8 @@ const elementText = (d: Data) => {
 }
 
 setTimeout(() => {
-  const d = parseHTML(`<p aa bb >123</p>`)
-  // const d = parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`)
+  // const d = parseHTML(`<p>1</p>  <p>2</p>`)
+  const d = parseHTML(`<p><!-- comment -->123</p>`)
 
   console.log(d.state)
   console.log(d.start, d.index)

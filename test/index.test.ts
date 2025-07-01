@@ -42,6 +42,28 @@ test('多个标签 <p>123</p><div>456</div>', () => {
   })
 })
 
+test('多个标签 <p>11</p>  <p>22</p>', () => {
+  expect(parseHTML('<p>11</p>  <p>22</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: '11'
+      }]
+    }, {
+      type: 'text',
+      text: '  '
+    }, {
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: '22'
+      }]
+    }]
+  })
+})
+
 test('缺少结束标签 <p1>111<p2>222', () => {
   expect(parseHTML('<p1>111<p2>222').doc).toEqual({
     type: 'doc',
@@ -94,108 +116,84 @@ test('嵌套标签 <p><span>123</span></p>', () => {
 test('开始标签后面有换行 <p\n></p><div>123</div>', () => {
   expect(parseHTML('<p\n></p><div>123</div>').doc).toEqual({
     type: 'doc',
-    content: [
-      {
-        type: 'p'
-      },
-      {
-        type: 'div',
-        content: [{
-          type: 'text',
-          text: '123'
-        }]
-      }
-    ]
+    content: [{
+      type: 'p'
+    }, {
+      type: 'div',
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
   })
 })
 
 test('开始标签前面有空格 < p></p><div>123</div>', () => {
   expect(parseHTML('< p></p><div>123</div>').doc).toEqual({
     type: 'doc',
-    content: [
-      {
-        type: 'p'
-      },
-      {
-        type: 'div',
-        content: [{
-          type: 'text',
-          text: '123'
-        }]
-      }
-    ]
+    content: [{
+      type: 'p'
+    },{
+      type: 'div',
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
   })
 })
 
 test('自闭合标签 <p>11<br>22</p>', () => {
   expect(parseHTML('<p>11<br>22</p>').doc).toEqual({
     type: 'doc',
-    content: [
-      {
-        type: 'p',
-        content: [
-          {
-            type: 'text',
-            text: '11'
-          },
-          {
-            type: 'br'
-          },
-          {
-            type: 'text',
-            text: '22'
-          }
-        ]
-      }
-    ]
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: '11'
+      }, {
+        type: 'br'
+      }, {
+        type: 'text',
+        text: '22'
+      }]
+    }]
   })
 })
 
 test('自闭合标签 <p>11<foo/>22</p>', () => {
   expect(parseHTML('<p>11<foo/>22</p>').doc).toEqual({
     type: 'doc',
-    content: [
-      {
-        type: 'p',
-        content: [
-          {
-            type: 'text',
-            text: '11'
-          },
-          {
-            type: 'foo'
-          },
-          {
-            type: 'text',
-            text: '22'
-          }
-        ]
-      }
-    ]
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: '11'
+      }, {
+        type: 'foo'
+      }, {
+        type: 'text',
+        text: '22'
+      }]
+    }]
   })
 })
 
 test('自闭合标签 <p>11<foo />22</p>', () => {
   expect(parseHTML('<p>11<foo />22</p>').doc).toEqual({
     type: 'doc',
-    content: [
-      {
-        type: 'p',
-        content: [
-          {
-            type: 'text',
-            text: '11'
-          },
-          {
-            type: 'foo'
-          },
-          {
-            type: 'text',
-            text: '22'
-          }
-        ]
-      }
-    ]
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: '11'
+      }, {
+        type: 'foo'
+      }, {
+        type: 'text',
+        text: '22'
+      }]
+    }]
   })
 })
 
@@ -298,55 +296,73 @@ test('标签属性名 <p aa bb >123</p>', () => {
   })
 })
 
-// test(`标签属性 <p aa="aa" bb='bb' cc=cc>123</p>`, () => {
-//   expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
-//     type: 'doc',
-//     content: [{
-//       type: 'p',
-//       attrs: {
-//         aa: 'aa',
-//         bb: 'bb',
-//         cc: 'cc'
-//       },
-//       content: [{
-//         type: 'text',
-//         text: '123'
-//       }]
-//     }]
-//   })
-// })
+test(`标签属性 <p aa="aa" bb='bb' cc=cc>123</p>`, () => {
+  expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        aa: 'aa',
+        bb: 'bb',
+        cc: 'cc'
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
 
-// test(`标签松散属性 <p aa = "aa"  bb = 'bb'  cc = cc >123</p>`, () => {
-//   expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
-//     type: 'doc',
-//     content: [{
-//       type: 'p',
-//       attrs: {
-//         aa: 'aa',
-//         bb: 'bb',
-//         cc: 'cc'
-//       },
-//       content: [{
-//         type: 'text',
-//         text: '123'
-//       }]
-//     }]
-//   })
-// })
+test(`标签属性 <p aa="aa" bb='bb' cc=cc >123</p>`, () => {
+  expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        aa: 'aa',
+        bb: 'bb',
+        cc: 'cc'
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
 
-// test(`标签属性带尖括号 <p aa="1 < 2"  bb='1 > 2'>123</p>`, () => {
-//   expect(parseHTML(`<p aa="1 < 2" bb='1 > 2'>123</p>`).doc).toEqual({
-//     type: 'doc',
-//     content: [{
-//       type: 'p',
-//       attrs: {
-//         aa: '1 < 2',
-//         bb: '1 > 2'
-//       },
-//       content: [{
-//         type: 'text',
-//         text: '123'
-//       }]
-//     }]
-//   })
-// })
+test(`标签松散属性 <p aa = "aa"  bb = 'bb'  cc = cc >123</p>`, () => {
+  expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        aa: 'aa',
+        bb: 'bb',
+        cc: 'cc'
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test(`标签属性带尖括号 <p aa="1 < 2"  bb='1 > 2'>123</p>`, () => {
+  expect(parseHTML(`<p aa="1 < 2" bb='1 > 2'>123</p>`).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        aa: '1 < 2',
+        bb: '1 > 2'
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
