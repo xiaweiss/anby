@@ -1,3 +1,11 @@
+interface Node {
+  type: string
+  content?: Node[]
+  text?: string
+  attrs?: Record<string, string | number | boolean>
+  marks?: {type: string}[]
+}
+
 type Data = {
   input: string
 
@@ -5,8 +13,7 @@ type Data = {
   state: typeof State[keyof typeof State]
   code: number
   char: string
-  tag: any
-  attrName: string
+  tag: Node | null
   attrQuote: number
 
   // pos
@@ -15,8 +22,8 @@ type Data = {
   end: number
 
   // json
-  stack: any[]
-  doc: any
+  stack: Node[]
+  doc: Node
 }
 
 const State = {
@@ -27,6 +34,12 @@ const State = {
   InTagName: 'InTagName',
   BeforeClosingTagName: 'BeforeClosingTagName',
   InClosingTagName: 'InClosingTagName',
+
+  // attr
+  BeforeAttrName: 'BeforeAttrName',
+  InAttrName: 'InAttrName',
+  BeforeAttrValue: 'BeforeAttrValue',
+  InAttrValue: 'InAttrValue'
 }
 
 const CharCodes = {
@@ -35,14 +48,10 @@ const CharCodes = {
   Slash: 0x2f, // "/"
   Gt: 0x3e, // ">"
 
-  // tag name
-  // LowerA: 0x61, // "a"
-  // LowerZ: 0x7a, // "z"
-  // UpperA: 0x41, // "A"
-  // UpperZ: 0x5a, // "Z"
-  // Zero: 0x30, // "0"
-  // Nine: 0x39, // "9"
-  // Hyphen: 0x2d, // "-"
+  // attr
+  Eq: 0x3d, // "="
+  DoubleQuote: 0x22, // '"'
+  SingleQuote: 0x27, // "'"
 
   // whitespace
   Space: 0x20, // " "
@@ -102,6 +111,14 @@ export const parseHTML = (input: string) => {
         stateInClosingTagName(d)
         break
       }
+      case State.BeforeAttrName: {
+        stateBeforeAttrName(d)
+        break
+      }
+      case State.InAttrName: {
+        stateInAttrName(d)
+        break
+      }
     }
 
     d.index += 1
@@ -122,7 +139,6 @@ const reset = () : Data => {
     code: 0,
     char: '',
     tag: null,
-    attrName: '',
     attrQuote: 0,
 
     // pos
@@ -159,11 +175,17 @@ const stateInTagName = (d: Data) => {
   // 不带属性的标签
   if (d.code === CharCodes.Gt) {
     tagName(d)
-    elementStart(d)
-    if (d.tag && SelfClosingTags[d.tag.type]) elementEnd(d)
+    elementStart(d, true)
 
     d.state = State.Text
     d.start = d.index + 1
+
+  // 自闭合标签
+  } else if (d.code === CharCodes.Slash) {
+    tagName(d)
+    elementStart(d)
+
+    d.state = State.InClosingTagName
 
   // 前面 content 内有 < 号（如 <p> 1 < 2 </p>）
   } else if (d.code === CharCodes.Lt) {
@@ -173,12 +195,12 @@ const stateInTagName = (d: Data) => {
       d.start = index
       stateText(d)
     }
-  // 自闭合标签
-  } else if (d.code === CharCodes.Slash) {
-    tagName(d)
-    elementStart(d)
 
-    d.state = State.InClosingTagName
+  // 可能带属性的标签
+  } else if (isWhitespace(d.code)) {
+    tagName(d)
+    d.state = State.BeforeAttrName
+    d.start = d.index + 1
   }
 }
 
@@ -192,6 +214,55 @@ const stateInClosingTagName = (d: Data) => {
     elementEnd(d)
 
     d.state = State.Text
+    d.start = d.index + 1
+  }
+}
+
+const stateBeforeAttrName = (d: Data) => {
+  // 标签结束
+  if (d.code === CharCodes.Gt) {
+    elementStart(d, true)
+    d.state = State.Text
+    d.start = d.index + 1
+
+  // 自闭合标签
+  } else if (d.code === CharCodes.Slash) {
+    elementStart(d)
+    d.state = State.InClosingTagName
+
+  // 前面 content 内有 < 号（如 <p> 1 < 2 </p>）
+  } else if (d.code === CharCodes.Lt) {
+    const index = backwardTo(d, CharCodes.Lt)
+
+    if (index) {
+      d.start = index
+      stateText(d)
+    }
+
+  } else if (!isWhitespace(d.code)) {
+    d.state = State.InAttrName
+    d.start = d.index
+  }
+}
+
+const stateInAttrName = (d: Data) => {
+  if (d.code === CharCodes.Eq) {
+    attrName(d)
+    d.state = State.BeforeAttrValue
+    d.start = d.index + 1
+
+  } else if (d.code === CharCodes.Gt) {
+    attrName(d)
+    elementStart(d, true)
+    if (d.tag && SelfClosingTags[d.tag.type]) elementEnd(d)
+
+    d.state = State.Text
+    d.start = d.index + 1
+
+
+  } else if (isWhitespace(d.code)) {
+    attrName(d)
+    d.state = State.BeforeAttrName
     d.start = d.index + 1
   }
 }
@@ -236,7 +307,16 @@ const tagName = (d: Data) => {
   d.tag = {type: tagName}
 }
 
-const elementStart = (d: Data) => {
+const attrName = (d: Data) => {
+  if (d.tag) {
+    // 属性名转为小写
+    const attrName = d.input.slice(d.start, d.index).toLowerCase().trim()
+    if (!d.tag.attrs) d.tag.attrs = {}
+    d.tag.attrs[attrName] = true // 默认值为 true
+  }
+}
+
+const elementStart = (d: Data, gt?: boolean) => {
   // parent node
   const node = d.stack[d.stack.length - 1]
 
@@ -247,11 +327,15 @@ const elementStart = (d: Data) => {
   }
 
 
-  console.log('====elementStart', d.tag)
+  // console.log('====elementStart', d.tag)
+
+  if (gt && d.tag && SelfClosingTags[d.tag.type]) {
+    elementEnd(d)
+  }
 }
 
 const elementEnd = (d: Data) => {
-  console.log('====elementEnd', d.tag)
+  // console.log('====elementEnd', d.tag)
   if (d.tag) d.stack.pop()
 }
 
@@ -259,7 +343,7 @@ const elementText = (d: Data) => {
   if (d.index > d.start) {
     const text = d.input.slice(d.start, d.index)
 
-    console.log('====elementText', text)
+    // console.log('====elementText', text)
 
     const parentNode = d.stack[d.stack.length - 1]
     if (parentNode) {
@@ -276,12 +360,13 @@ const elementText = (d: Data) => {
 }
 
 setTimeout(() => {
-  const d = parseHTML(`<p><!-- comment --></p>`)
-  // const d = parseHTML(`111</p>`)
+  const d = parseHTML(`<p aa bb >123</p>`)
+  // const d = parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`)
 
   console.log(d.state)
   console.log(d.start, d.index)
   console.log(d.input.slice(d.start, d.index))
+  console.log(d.tag)
   console.log(d.stack[d.stack.length - 1])
   console.log(d.doc)
 })

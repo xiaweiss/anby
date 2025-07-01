@@ -238,6 +238,66 @@ test('内容有 < 号 <p> 1 < 2 </p>', () => {
   })
 })
 
+test('内容有 < 号 <p>1 < 2</p>', () => {
+  expect(parseHTML('<p> 1 < 2 </p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: ' 1 < 2 '
+      }]
+    }]
+  })
+})
+
+test('标签带空格 <p >123</p>', () => {
+  expect(parseHTML('<p >123</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test('标签属性 <p aa bb>123</p>', () => {
+  expect(parseHTML('<p aa bb>123</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        aa: true,
+        bb: true
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test('标签属性名 <p aa bb >123</p>', () => {
+  expect(parseHTML('<p aa bb >123</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        aa: true,
+        bb: true
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
 // test(`标签属性 <p aa="aa" bb='bb' cc=cc>123</p>`, () => {
 //   expect(parseHTML(`<p aa="aa" bb='bb' cc=cc>123</p>`).doc).toEqual({
 //     type: 'doc',
