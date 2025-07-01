@@ -366,3 +366,76 @@ test(`标签属性带尖括号 <p aa="1 < 2"  bb='1 > 2'>123</p>`, () => {
     }]
   })
 })
+
+test(`标签别名 <p>123</p>`, () => {
+  expect(parseHTML('<p>11<br>22</p>', {alias: {p: 'paragraph'}}).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'paragraph',
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test(`自闭合标签 <p><note>123</p>`, () => {
+  expect(parseHTML('<p><note>123</p>', {selfClose: ['note']}).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'note',
+      }, {
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test(`自闭合标签别名 <p>11<br>22</p>`, () => {
+  expect(parseHTML('<p>11<br>22</p>', {
+    alias: {
+      p: 'paragraph',
+      br: 'headBreak'
+    },
+    selfClose: ['headBreak']
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'paragraph',
+      content: [{
+        type: 'text',
+        text: '11'
+      }, {
+        type: 'headBreak'
+      }, {
+        type: 'text',
+        text: '22'
+      }]
+    }]
+  })
+})
+
+test(`转换为编辑器mark <p><strong>加粗</strong></p>`, () => {
+  expect(parseHTML('<p><strong>加粗</strong></p>', {
+    marks: [{
+      type: 'strong',
+      marks: [{type: 'bold'}]
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        marks: [
+          {type: 'bold'}
+        ],
+        text: '加粗'
+      }]
+    }]
+  })
+})
