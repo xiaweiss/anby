@@ -366,3 +366,210 @@ test(`标签属性带尖括号 <p aa="1 < 2"  bb='1 > 2'>123</p>`, () => {
     }]
   })
 })
+
+test(`标签别名 <p>123</p>`, () => {
+  expect(parseHTML('<p>123</p>', {alias: {p: 'paragraph'}}).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'paragraph',
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test(`自闭合标签 <p><note>123</p>`, () => {
+  expect(parseHTML('<p><note>123</p>', {selfClose: ['note']}).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'note',
+      }, {
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
+test(`自闭合标签别名 <p>11<br>22</p>`, () => {
+  expect(parseHTML('<p>11<br>22</p>', {
+    alias: {
+      p: 'paragraph',
+      br: 'headBreak'
+    },
+    selfClose: ['headBreak']
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'paragraph',
+      content: [{
+        type: 'text',
+        text: '11'
+      }, {
+        type: 'headBreak'
+      }, {
+        type: 'text',
+        text: '22'
+      }]
+    }]
+  })
+})
+
+test(`简单 mark <p><strong>加粗</strong></p>`, () => {
+  expect(parseHTML('<p><strong>加粗</strong></p>', {
+    markRule: [{
+      type: 'strong',
+      mark: {type: 'bold'}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        marks: [
+          {type: 'bold'}
+        ],
+        text: '加粗'
+      }]
+    }]
+  })
+})
+
+test(`不同种类的 mark <i>aa</i> <b>bb</b>cc`, () => {
+  expect(parseHTML(`<i>aa</i> <b>bb</b>cc`, {
+    markRule: [{
+      type: 'i',
+      mark: {type: 'italic'},
+    },{
+      type: 'b',
+      mark: {type: 'bold'},
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'text',
+      text: 'aa',
+      marks: [{type: 'italic'}]
+    },{
+      type: 'text',
+      text: ' ',
+    },{
+      type: 'text',
+      text: 'bb',
+      marks: [{type: 'bold'}]
+    },{
+      type: 'text',
+      text: 'cc'
+    }]
+  })
+})
+
+test(`嵌套的 mark <i><b>斜体加粗</b></i>`, () => {
+  expect(parseHTML('<i><b>斜体加粗</b></i>', {
+    markRule: [{
+      type: 'i',
+      mark: {type: 'italic'},
+    },{
+      type: 'b',
+      mark: {type: 'bold'},
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'text',
+      text: '斜体加粗',
+      marks: [
+        {type: 'italic'},
+        {type: 'bold'}
+      ]
+    }]
+  })
+})
+
+test(`带属性的 mark <span type="highlight">高亮</span>`, () => {
+  expect(parseHTML('<span type="highlight">高亮</span>', {
+    markRule: [{
+      type: 'span',
+      attrs: {type: 'highlight'},
+      mark: {type: 'highlight'}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'text',
+      text: '高亮',
+      marks: [{
+        type: 'highlight'
+      }]
+    }]
+  })
+})
+
+test(`带属性的 mark <span type="highlight" color="pink" foo="11">高亮</span>`, () => {
+  expect(parseHTML('<span type="highlight" color="pink" foo="11">高亮</span>', {
+    markRule: [{
+      type: 'span',
+      attrs: {type: 'highlight'},
+      mark: {type: 'highlight', attrs: {color: 'pink'}}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'text',
+      text: '高亮',
+      marks: [{
+        type: 'highlight',
+        attrs: {color: 'pink'}
+      }]
+    }]
+  })
+})
+
+
+test(`标签包裹的 mark <p>文字<span type="highlight">高亮</span></p>`, () => {
+  expect(parseHTML('<p>文字<span type="highlight">高亮</span></p>', {
+    markRule: [{
+      type: 'span',
+      attrs: {type: 'highlight'},
+      mark: {type: 'highlight'}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: '文字',
+      }, {
+        type: 'text',
+        text: '高亮',
+        marks: [{type: 'highlight'}]
+      }]
+    }]
+  })
+})
+
+test(`多种规则对应用一个 mark <strong>aa</strong><b>bb</b>`, () => {
+  expect(parseHTML('<strong>aa</strong><b>bb</b>', {
+    markRule: [{
+      type: 'strong',
+      mark: {type: 'bold'}
+    }, {
+      type: 'b',
+      mark: {type: 'bold'}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'text',
+      text: 'aabb',
+      marks: [{type: 'bold'}]
+    }]
+  })
+})
+
