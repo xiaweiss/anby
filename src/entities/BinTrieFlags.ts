@@ -1,0 +1,5 @@
+export const enum BinTrieFlags {
+    VALUE_LENGTH = 0b1100_0000_0000_0000,
+    BRANCH_LENGTH = 0b0011_1111_1000_0000,
+    JUMP_TABLE = 0b0000_0000_0111_1111,
+}

@@ -527,16 +527,16 @@ const isMarksEqual = (marks1: Mark[] = [], marks2: Mark[] = []) => {
   })
 }
 
-// setTimeout(() => {
-//   const d = parseHTML(`111</p1>222</p2>`)
+setTimeout(() => {
+  const d = parseHTML(`<p>show note</p><audio src="" audio-uuid="BEZ2dKG2GU2LdFpTxxssn" audio-duration="814.162313" show-note="&lt;alert&gt;\n\n01:23 啦啦啦\n01:23.111 啦啦啦"><p>啦啦啦</p></audio><p></p>`)
 
-//   console.log(d.state)
-//   console.log(d.start, d.index)
-//   console.log(d.input.slice(d.start, d.index))
-//   console.log(d.tag)
-//   console.log(d.marks)
-//   console.log(d.stack[d.stack.length - 1])
-//   console.log(d.doc)
+  console.log(d.state)
+  console.log(d.start, d.index)
+  console.log(d.input.slice(d.start, d.index))
+  console.log(d.tag)
+  console.log(d.marks)
+  console.log(d.stack[d.stack.length - 1])
+  console.log(d.doc)
 
-//   console.log(JSON.stringify(d.doc))
-// })
+  console.log(JSON.stringify(d.doc))
+})
