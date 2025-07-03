@@ -1,9 +1,10 @@
 import { CharCodes } from './CharCodes'
 import { DecodingMode } from './DecodingMode'
-import { isNumber } from './isNumber'
-import { isHexadecimalCharacter } from './isHexadecimalCharacter'
-import { replaceCodePoint } from './replaceCodePoint'
 import { determineBranch } from './determineBranch'
+import { isEntityInAttributeInvalidEnd } from './isEntityInAttributeInvalidEnd'
+import { isHexadecimalCharacter } from './isHexadecimalCharacter'
+import { isNumber } from './isNumber'
+import { replaceCodePoint } from './replaceCodePoint'
 
 interface EntityErrorProducer {
     missingSemicolonAfterCharacterReference(): void;
@@ -403,6 +404,3 @@ export class EntityDecoder {
         }
     }
 }
-
-
-

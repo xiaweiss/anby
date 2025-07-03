@@ -1,3 +1,5 @@
+import { decodeHTML } from './entities/decodeHTML'
+
 interface Node {
   type: string
   content?: Node[]
@@ -407,7 +409,7 @@ const attrName = (d: Data) => {
 
 const attrValue = (d: Data) => {
   const attrValue = d.input.slice(d.start, d.index)
-  d.tag!.attrs![d.attrName] = attrValue
+  d.tag!.attrs![d.attrName] = decodeHTML(attrValue)
 }
 
 const elementStart = (d: Data, gt?: boolean) => {
@@ -461,7 +463,7 @@ const elementEnd = (d: Data) => {
 
 const elementText = (d: Data) => {
   if (d.index > d.start) {
-    const text = d.input.slice(d.start, d.index)
+    const text = decodeHTML(d.input.slice(d.start, d.index))
 
     const parentNode = getParentNode(d)
     if (parentNode) {
