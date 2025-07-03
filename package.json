@@ -1,21 +1,30 @@
 {
-  "name": "kaf",
-  "version": "0.0.0",
+  "name": "anby",
+  "version": "0.0.1",
   "description": "",
   "type": "module",
-  "main": "src/index.ts",
-  "exports": {
-    ".": "./src/index.ts"
-  },
+  "miniprogram": "dist",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
+    "changelog": "conventional-changelog -i CHANGELOG.md -s",
+    "lint": "tsc --noEmit",
+    "build": "tsc && vite build",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
   "keywords": [],
-  "author": "",
+  "author": "xiaweiss",
   "license": "MIT",
   "devDependencies": {
     "@vitest/coverage-v8": "3.2.4",
+    "conventional-changelog": "^7.1.0",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0",
+    "vite-plugin-dts": "^4.5.4",
     "vitest": "^3.2.4"
   }
 }

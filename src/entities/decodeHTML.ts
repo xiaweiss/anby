@@ -9,8 +9,8 @@ import { htmlDecoder } from './htmlDecoder'
  * @returns The decoded string.
  */
 export function decodeHTML(
-    htmlString: string,
-    mode: DecodingMode = DecodingMode.Legacy,
+  htmlString: string,
+  mode: DecodingMode = DecodingMode.Legacy,
 ): string {
-    return htmlDecoder(htmlString, mode);
+  return htmlDecoder(htmlString, mode);
 }

@@ -8,5 +8,5 @@ import { isAsciiAlphaNumeric } from './isAsciiAlphaNumeric'
  * See the example in https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
  */
 export function isEntityInAttributeInvalidEnd(code: number): boolean {
-    return code === CharCodes.EQUALS || isAsciiAlphaNumeric(code);
+  return code === CharCodes.EQUALS || isAsciiAlphaNumeric(code);
 }

@@ -11,46 +11,46 @@ import { BinTrieFlags } from './BinTrieFlags'
  * @returns The index of the next node, or -1 if no branch is taken.
  */
 export function determineBranch(
-    decodeTree: Uint16Array,
-    current: number,
-    nodeIndex: number,
-    char: number,
+  decodeTree: Uint16Array,
+  current: number,
+  nodeIndex: number,
+  char: number,
 ): number {
-    const branchCount = (current & BinTrieFlags.BRANCH_LENGTH) >> 7;
-    const jumpOffset = current & BinTrieFlags.JUMP_TABLE;
+  const branchCount = (current & BinTrieFlags.BRANCH_LENGTH) >> 7;
+  const jumpOffset = current & BinTrieFlags.JUMP_TABLE;
 
-    // Case 1: Single branch encoded in jump offset
-    if (branchCount === 0) {
-        return jumpOffset !== 0 && char === jumpOffset ? nodeIndex : -1;
+  // Case 1: Single branch encoded in jump offset
+  if (branchCount === 0) {
+    return jumpOffset !== 0 && char === jumpOffset ? nodeIndex : -1;
+  }
+
+  // Case 2: Multiple branches encoded in jump table
+  if (jumpOffset) {
+    const value = char - jumpOffset;
+
+    return value < 0 || value >= branchCount
+      ? -1
+      : decodeTree[nodeIndex + value] - 1;
+  }
+
+  // Case 3: Multiple branches encoded in dictionary
+
+  // Binary search for the character.
+  let lo = nodeIndex;
+  let hi = lo + branchCount - 1;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >>> 1;
+    const midValue = decodeTree[mid];
+
+    if (midValue < char) {
+      lo = mid + 1;
+    } else if (midValue > char) {
+      hi = mid - 1;
+    } else {
+      return decodeTree[mid + branchCount];
     }
+  }
 
-    // Case 2: Multiple branches encoded in jump table
-    if (jumpOffset) {
-        const value = char - jumpOffset;
-
-        return value < 0 || value >= branchCount
-            ? -1
-            : decodeTree[nodeIndex + value] - 1;
-    }
-
-    // Case 3: Multiple branches encoded in dictionary
-
-    // Binary search for the character.
-    let lo = nodeIndex;
-    let hi = lo + branchCount - 1;
-
-    while (lo <= hi) {
-        const mid = (lo + hi) >>> 1;
-        const midValue = decodeTree[mid];
-
-        if (midValue < char) {
-            lo = mid + 1;
-        } else if (midValue > char) {
-            hi = mid - 1;
-        } else {
-            return decodeTree[mid + branchCount];
-        }
-    }
-
-    return -1;
+  return -1;
 }

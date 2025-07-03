@@ -51,20 +51,20 @@ export interface ParseHTMLConfig {
 
 
 const State = {
-  Text: 'Text',
+  Text: 1,
 
   // tag
-  BeforeTagName: 'BeforeTagName',
-  InTagName: 'InTagName',
-  BeforeClosingTagName: 'BeforeClosingTagName',
-  InClosingTagName: 'InClosingTagName',
-  InExclamation: 'InExclamation',
+  BeforeTagName: 2,
+  InTagName: 3,
+  BeforeClosingTagName: 4,
+  InClosingTagName: 5,
+  InExclamation: 6,
 
   // attr
-  BeforeAttrName: 'BeforeAttrName',
-  InAttrName: 'InAttrName',
-  BeforeAttrValue: 'BeforeAttrValue',
-  InAttrValue: 'InAttrValue'
+  BeforeAttrName: 7,
+  InAttrName: 8,
+  BeforeAttrValue: 9,
+  InAttrValue: 10
 }
 
 const CharCodes = {
@@ -88,7 +88,7 @@ const CharCodes = {
   VerticalTab: 0xb, // "\v"
 }
 
-export const SelfClosingTags: Record<string, boolean> = {
+const SelfClosingTags: Record<string, boolean> = {
   'area': true,
   'base': true,
   'br': true,
