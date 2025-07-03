@@ -391,9 +391,16 @@ const backwardTo = (d: Data, c: number) => {
 const tagName = (d: Data) => {
   let tagName = d.input.slice(d.start, d.index).toLowerCase().trim().replace(/\/$/, '')
 
+  const parentNode = getParentNode(d)
+
   // 别名
-  if (d.config.alias && d.config.alias[tagName]) {
-    tagName = d.config.alias[tagName]
+  if (d.config.alias) {
+    if (d.config.alias[parentNode.type + ' > ' + tagName]) {
+      tagName = d.config.alias[parentNode.type + ' > ' + tagName]
+
+    } else if (d.config.alias[tagName]) {
+      tagName = d.config.alias[tagName]
+    }
   }
 
   d.tag = {type: tagName}
@@ -529,16 +536,21 @@ const isMarksEqual = (marks1: Mark[] = [], marks2: Mark[] = []) => {
   })
 }
 
-setTimeout(() => {
-  const d = parseHTML(`<p>show note</p><audio src="" audio-uuid="BEZ2dKG2GU2LdFpTxxssn" audio-duration="814.162313" show-note="&lt;alert&gt;\n\n01:23 啦啦啦\n01:23.111 啦啦啦"><p>啦啦啦</p></audio><p></p>`)
+// setTimeout(() => {
+//   const d = parseHTML(`<p>show note</p><audio src="" audio-uuid="BEZ2dKG2GU2LdFpTxxssn" audio-duration="814.162313" show-note="&lt;alert&gt;\n\n01:23 啦啦啦\n01:23.111 啦啦啦"><p>啦啦啦</p></audio><p></p>`, {
+//     alias: {
+//       'p': 'paragraph',
+//       'audio > p': 'audioText',
+//     }
+//   })
 
-  console.log(d.state)
-  console.log(d.start, d.index)
-  console.log(d.input.slice(d.start, d.index))
-  console.log(d.tag)
-  console.log(d.marks)
-  console.log(d.stack[d.stack.length - 1])
-  console.log(d.doc)
+//   console.log(d.state)
+//   console.log(d.start, d.index)
+//   console.log(d.input.slice(d.start, d.index))
+//   console.log(d.tag)
+//   console.log(d.marks)
+//   console.log(d.stack[d.stack.length - 1])
+//   console.log(d.doc)
 
-  console.log(JSON.stringify(d.doc))
-})
+//   console.log(JSON.stringify(d.doc))
+// })

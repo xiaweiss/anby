@@ -380,6 +380,26 @@ test(`标签别名 <p>123</p>`, () => {
   })
 })
 
+test(`父子关系指定标签别名 <audio><p>123</p></audio>`, () => {
+  expect(parseHTML('<audio><p>123</p></audio>', {
+    alias: {
+      'audio > p': 'audioText'
+    }
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'audio',
+      content: [{
+        type: 'audioText',
+        content: [{
+          type: 'text',
+          text: '123'
+        }]
+      }]
+    }]
+  })
+})
+
 test(`自闭合标签 <p><note>123</p>`, () => {
   expect(parseHTML('<p><note>123</p>', {selfClose: ['note']}).doc).toEqual({
     type: 'doc',
