@@ -41,12 +41,12 @@ interface Data {
 }
 
 export interface ParseHTMLConfig {
-  /** 标签别名 */
+  /** 标签别名，用于更改 tag 名称，也可以根据父子关系修改，如 'audio > p' */
   alias?: Record<string, string>
-  /** 自闭合标签 */
-  selfClose?: string[]
-  /** 节点解析为编辑器 marks */
+  /** 节点解析为编辑器 marks。类似 tiptap 的 mark 规则，将包裹修饰的标签，转换为 marks 属性 */
   markRule?: MarkRule[]
+  /** 自定义自闭合标签（注意：如果标签自带反斜杠，则无需配置，例如 `<note />`）*/
+  selfClose?: string[]
 }
 
 

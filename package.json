@@ -13,7 +13,7 @@
     "changelog": "conventional-changelog -i CHANGELOG.md -s",
     "lint": "tsc --noEmit",
     "build": "tsc && vite build",
-    "test": "vitest",
+    "test": "vitest run",
     "coverage": "vitest run --coverage"
   },
   "keywords": [],
