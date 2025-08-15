@@ -415,8 +415,9 @@ const attrName = (d: Data) => {
 }
 
 const attrValue = (d: Data) => {
-  const attrValue = d.input.slice(d.start, d.index)
-  d.tag!.attrs![d.attrName] = decodeHTML(attrValue)
+  const value = decodeHTML(d.input.slice(d.start, d.index))
+  // 如果是数字，则转为数字类型
+  d.tag!.attrs![d.attrName] = isValidNumber(value) ? Number(value) : value
 }
 
 const elementStart = (d: Data, gt?: boolean) => {
@@ -536,6 +537,18 @@ const isMarksEqual = (marks1: Mark[] = [], marks2: Mark[] = []) => {
   })
 }
 
+/**
+ * 判断字符串是否为有效数字
+ * @eg isValidNumber('338.74')    // true
+ * @eg isValidNumber('-338.74')   // true
+ * @eg isValidNumber('338')       // true
+ * @eg isValidNumber('338.')      // false
+ * @eg isValidNumber('.74')       // false
+ */
+const isValidNumber = (str: string): boolean => {
+  return /^-?\d+(\.\d+)?$/.test(str.trim())
+}
+
 // setTimeout(() => {
 //   const d = parseHTML(`<p>show note</p><audio src="" audio-uuid="BEZ2dKG2GU2LdFpTxxssn" audio-duration="814.162313" show-note="&lt;alert&gt;\n\n01:23 啦啦啦\n01:23.111 啦啦啦"><p>啦啦啦</p></audio><p></p>`, {
 //     alias: {
@@ -554,3 +567,26 @@ const isMarksEqual = (marks1: Mark[] = [], marks2: Mark[] = []) => {
 
 //   console.log(JSON.stringify(d.doc))
 // })
+
+
+setTimeout(() => {
+  const d = parseHTML(`<audio><p>墨问西东<br>第二行</p></audio><p></p>`, {
+    selfClose: ['image', 'headBreak'],
+    alias: {
+      p: 'paragraph',
+      br: 'headBreak',
+      img: 'image',
+      'audio > p': 'audioText'
+    },
+    markRule: [{
+      type: 'strong',
+      mark: {type: 'bold'}
+    }, {
+      type: 'span',
+      attrs: {type: 'highlight'},
+      mark: {type: 'highlight'}
+    }]
+  })
+
+  console.log(d.doc)
+})

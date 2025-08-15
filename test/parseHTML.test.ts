@@ -367,6 +367,27 @@ test(`标签属性带尖括号 <p aa="1 < 2"  bb='1 > 2'>123</p>`, () => {
   })
 })
 
+test(`标签属性带数字 <p a="123" b="-123' c='123.45' d='123.' e=".45">123</p>`, () => {
+  expect(parseHTML(`<p a="123" b="-123" c='123.45' d='123.' e=".45" f="123 ">123</p>`).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: {
+        a: 123,
+        b: -123,
+        c: 123.45,
+        d: '123.',
+        e: '.45',
+        f: 123
+      },
+      content: [{
+        type: 'text',
+        text: '123'
+      }]
+    }]
+  })
+})
+
 test(`标签别名 <p>123</p>`, () => {
   expect(parseHTML('<p>123</p>', {alias: {p: 'paragraph'}}).doc).toEqual({
     type: 'doc',
