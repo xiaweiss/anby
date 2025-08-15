@@ -1,3 +1,7 @@
+## <small>0.0.4 (2025-08-15)</small>
+
+* fix: 属性值是数字时，自动转换为 number 类型 ([30c4091](https://github.com/xiaweiss/anby/commit/30c4091))
+
 ## <small>0.0.3 (2025-07-11)</small>
 
 * fix: 修复 types 文件路径 ([14f2fc4](https://github.com/xiaweiss/anby/commit/14f2fc4))
