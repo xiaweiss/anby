@@ -556,7 +556,7 @@ test(`带属性的 mark <span type="highlight" color="pink" foo="11">高亮</spa
     markRule: [{
       type: 'span',
       attrs: {type: 'highlight'},
-      mark: {type: 'highlight', attrs: {color: 'pink'}}
+      mark: {type: 'highlight'}
     }]
   }).doc).toEqual({
     type: 'doc',
@@ -565,7 +565,10 @@ test(`带属性的 mark <span type="highlight" color="pink" foo="11">高亮</spa
       text: '高亮',
       marks: [{
         type: 'highlight',
-        attrs: {color: 'pink'}
+        attrs: {
+          color: 'pink',
+          foo: 11
+        }
       }]
     }]
   })
@@ -589,7 +592,9 @@ test(`标签包裹的 mark <p>文字<span type="highlight">高亮</span></p>`, (
       }, {
         type: 'text',
         text: '高亮',
-        marks: [{type: 'highlight'}]
+        marks: [{
+          type: 'highlight'
+        }]
       }]
     }]
   })

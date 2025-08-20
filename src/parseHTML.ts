@@ -13,8 +13,10 @@ interface Mark {
   attrs?: Record<string, string | number | boolean>
 }
 
-interface MarkRule extends Node {
-  mark: Mark
+interface MarkRule extends Mark {
+  mark: {
+    type: string
+  }
 }
 
 interface Data {
@@ -427,22 +429,24 @@ const elementStart = (d: Data, gt?: boolean) => {
   if (d.tag) {
     if (d.config.markRule) {
       // 匹配出 type 和 attrs 都符合的 mark
-      marks = d.config.markRule.filter(rule => rule.type === d.tag!.type && isAttrsInclude(rule.attrs, d.tag!.attrs)).map(rule => rule.mark)
+      marks = d.config.markRule.filter(rule => {
+        return rule.type === d.tag!.type && isAttrsInclude(rule.attrs, d.tag!.attrs)
+      }).map(rule => {
+        const { type } = rule.mark
+        const { attrs } = d.tag!
+
+        // mark 的 type 和 attrs 的 type 属性值一样时，忽略 type 属性
+        if (attrs?.type === type) delete attrs.type
+
+        if (attrs && !isEmpty(attrs)) {
+          return {type, attrs}
+        }
+
+        return {type}
+      })
     }
 
     if (marks.length) {
-      // NOTE: 暂时不处理 mark 标签内的 attrs
-      // if (d.tag.attrs) {
-      //   const keys1 = Object.keys(d.tag.attrs)
-
-      //   for (const mark of marks) {
-      //     const keys2 = Object.keys(mark.attrs || {})
-      //     if (keys1.length === keys2.length) continue
-
-      //     mark.attrs = {...d.tag.attrs, ...mark.attrs} // 合并 attrs
-      //   }
-      // }
-
       d.marks = d.marks.concat(marks)
       d.stack.push(marks)
 
@@ -549,12 +553,26 @@ const isValidNumber = (str: string): boolean => {
   return /^-?\d+(\.\d+)?$/.test(str.trim())
 }
 
+/**
+ * 判断对象是否为空
+ * @param obj
+ * @eg isEmpty({})         // true
+ * @eg isEmpty({a: 1})     // false
+ */
+const isEmpty = (obj: Record<string, any>): boolean => {
+  for (const _ in obj) {
+    return false
+  }
+  return true
+}
+
 // setTimeout(() => {
-//   const d = parseHTML(`<p>show note</p><audio src="" audio-uuid="BEZ2dKG2GU2LdFpTxxssn" audio-duration="814.162313" show-note="&lt;alert&gt;\n\n01:23 啦啦啦\n01:23.111 啦啦啦"><p>啦啦啦</p></audio><p></p>`, {
-//     alias: {
-//       'p': 'paragraph',
-//       'audio > p': 'audioText',
-//     }
+//   const d = parseHTML(`<span type="highlight">高亮</span>`, {
+//     markRule: [{
+//       type: 'span',
+//       attrs: {type: 'highlight'},
+//       mark: {type: 'highlight'}
+//     }]
 //   })
 
 //   console.log(d.state)
@@ -569,24 +587,24 @@ const isValidNumber = (str: string): boolean => {
 // })
 
 
-setTimeout(() => {
-  const d = parseHTML(`<audio><p>墨问西东<br>第二行</p></audio><p></p>`, {
-    selfClose: ['image', 'headBreak'],
-    alias: {
-      p: 'paragraph',
-      br: 'headBreak',
-      img: 'image',
-      'audio > p': 'audioText'
-    },
-    markRule: [{
-      type: 'strong',
-      mark: {type: 'bold'}
-    }, {
-      type: 'span',
-      attrs: {type: 'highlight'},
-      mark: {type: 'highlight'}
-    }]
-  })
+// setTimeout(() => {
+//   const d = parseHTML(`<audio><p>墨问西东<br>第二行</p></audio><p></p>`, {
+//     selfClose: ['image', 'headBreak'],
+//     alias: {
+//       p: 'paragraph',
+//       br: 'headBreak',
+//       img: 'image',
+//       'audio > p': 'audioText'
+//     },
+//     markRule: [{
+//       type: 'strong',
+//       mark: {type: 'bold'}
+//     }, {
+//       type: 'span',
+//       attrs: {type: 'highlight'},
+//       mark: {type: 'highlight'}
+//     }]
+//   })
 
-  console.log(d.doc)
-})
+//   console.log(d.doc)
+// })
