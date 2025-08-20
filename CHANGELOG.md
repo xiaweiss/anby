@@ -1,3 +1,7 @@
+## <small>0.0.5 (2025-08-20)</small>
+
+* chore: marks 支持 attrs ([44afe5e](https://github.com/xiaweiss/anby/commit/44afe5e))
+
 ## <small>0.0.4 (2025-08-15)</small>
 
 * fix: 属性值是数字时，自动转换为 number 类型 ([30c4091](https://github.com/xiaweiss/anby/commit/30c4091))
