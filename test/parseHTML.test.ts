@@ -481,6 +481,27 @@ test(`简单 mark <p><strong>加粗</strong></p>`, () => {
   })
 })
 
+test(`简单 mark JSON.stringify <p><strong>加粗</strong></p>`, () => {
+  expect(JSON.stringify(parseHTML('<p><strong>加粗</strong></p>', {
+    markRule: [{
+      type: 'strong',
+      mark: {type: 'bold'}
+    }]
+  }).doc)).toEqual(JSON.stringify({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{
+        type: 'text',
+        marks: [
+          {type: 'bold'}
+        ],
+        text: '加粗',
+      }]
+    }]
+  }))
+})
+
 test(`不同种类的 mark <i>aa</i> <b>bb</b>cc`, () => {
   expect(parseHTML(`<i>aa</i> <b>bb</b>cc`, {
     markRule: [{
@@ -494,15 +515,15 @@ test(`不同种类的 mark <i>aa</i> <b>bb</b>cc`, () => {
     type: 'doc',
     content: [{
       type: 'text',
-      text: 'aa',
-      marks: [{type: 'italic'}]
+      marks: [{type: 'italic'}],
+      text: 'aa'
     },{
       type: 'text',
       text: ' ',
     },{
       type: 'text',
-      text: 'bb',
-      marks: [{type: 'bold'}]
+      marks: [{type: 'bold'}],
+      text: 'bb'
     },{
       type: 'text',
       text: 'cc'
@@ -523,11 +544,11 @@ test(`嵌套的 mark <i><b>斜体加粗</b></i>`, () => {
     type: 'doc',
     content: [{
       type: 'text',
-      text: '斜体加粗',
       marks: [
         {type: 'italic'},
         {type: 'bold'}
-      ]
+      ],
+      text: '斜体加粗'
     }]
   })
 })
@@ -543,10 +564,10 @@ test(`带属性的 mark <span type="highlight">高亮</span>`, () => {
     type: 'doc',
     content: [{
       type: 'text',
-      text: '高亮',
       marks: [{
         type: 'highlight'
-      }]
+      }],
+      text: '高亮'
     }]
   })
 })
@@ -562,14 +583,14 @@ test(`带属性的 mark <span type="highlight" color="pink" foo="11">高亮</spa
     type: 'doc',
     content: [{
       type: 'text',
-      text: '高亮',
       marks: [{
         type: 'highlight',
         attrs: {
           color: 'pink',
           foo: 11
         }
-      }]
+      }],
+      text: '高亮'
     }]
   })
 })
@@ -591,10 +612,10 @@ test(`标签包裹的 mark <p>文字<span type="highlight">高亮</span></p>`, (
         text: '文字',
       }, {
         type: 'text',
-        text: '高亮',
         marks: [{
           type: 'highlight'
-        }]
+        }],
+        text: '高亮'
       }]
     }]
   })
@@ -613,8 +634,8 @@ test(`多种规则对应用一个 mark <strong>aa</strong><b>bb</b>`, () => {
     type: 'doc',
     content: [{
       type: 'text',
-      text: 'aabb',
-      marks: [{type: 'bold'}]
+      marks: [{type: 'bold'}],
+      text: 'aabb'
     }]
   })
 })

@@ -485,7 +485,8 @@ const elementText = (d: Data) => {
       if (lastChild && lastChild.type === 'text' && isMarksEqual(lastChild.marks, d.marks)) {
         lastChild.text += text
       } else if (d.marks.length) {
-        parentNode.content.push({type: 'text', text, marks: d.marks})
+        // 这里和 tiptap 的 getJSON 保持一致，marks 在 text 之前
+        parentNode.content.push({type: 'text', marks: d.marks, text})
       } else {
         parentNode.content.push({type: 'text', text})
       }
