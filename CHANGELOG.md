@@ -1,3 +1,7 @@
+## <small>0.0.6 (2025-08-26)</small>
+
+* fix: 和 tiptap 保持一致，marks 属性放到 text 之前 ([a8da6b4](https://github.com/xiaweiss/anby/commit/a8da6b4))
+
 ## <small>0.0.5 (2025-08-20)</small>
 
 * chore: marks 支持 attrs ([44afe5e](https://github.com/xiaweiss/anby/commit/44afe5e))
