@@ -1,4 +1,4 @@
-import { decodeHTML } from './entities/decodeHTML'
+import { decodeHTML } from 'entities'
 
 interface Node {
   type: string

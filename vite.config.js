@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
-import dts from 'vite-plugin-dts'
+import dts from 'unplugin-dts/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -13,19 +13,12 @@ export default defineConfig({
       fileName: 'index',
     }
   },
-  minify: 'esbuild',
-  rollupOptions: {
-    output: {
-      // 保持更好的格式
-      compact: false,
-    },
-  },
   plugins: [
     dts({
       // 生成类型定义文件
       insertTypesEntry: true,
       // 输出目录
-      outDir: 'dist/types',
+      outDirs: 'dist/types',
       // 包含的文件
       include: ['src/**/*'],
       // 排除的文件
