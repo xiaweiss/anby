@@ -652,3 +652,76 @@ test(`属性转数字 <img foo="123" alt="123" />`, () => {
     }]
   })
 })
+
+test(`节点覆盖规则 <p type="title">标题</p>`, () => {
+  expect(parseHTML('<p type="title">标题</p>', {
+    nodeRule: [{
+      type: 'p',
+      attrs: {type: 'title'},
+      node: {type: 'title'}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'title',
+      content: [{
+        type: 'text',
+        text: '标题'
+      }]
+    }]
+  })
+})
+
+test(`节点覆盖规则 <h1>标题1</h1>`, () => {
+  expect(parseHTML('<h1>标题1</h1>', {
+    nodeRule: [{
+      type: 'h1',
+      node: {
+        type: 'heading',
+        attrs: {
+          level: 1
+        }
+      }
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'heading',
+      attrs: {
+        level: 1
+      },
+      content: [{
+        type: 'text',
+        text: '标题1'
+      }]
+    }]
+  })
+})
+
+test(`别名+节点覆盖 <p type="title">标题</p><p>文字</p>`, () => {
+  expect(parseHTML('<p type="title">标题</p><p>文字</p>', {
+    alias: {
+      'p': 'paragraph'
+    },
+    nodeRule: [{
+      type: 'paragraph',
+      attrs: {type: 'title'},
+      node: {type: 'title'}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'title',
+      content: [{
+        type: 'text',
+        text: '标题'
+      }]
+    },{
+      type: 'paragraph',
+      content: [{
+        type: 'text',
+        text: '文字'
+      }]
+    }]
+  })
+})
