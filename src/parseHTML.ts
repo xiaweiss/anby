@@ -1,4 +1,4 @@
-import { decodeHTML } from './entities/decodeHTML'
+import { decodeHTML } from 'entities'
 
 interface Node {
   type: string
@@ -17,6 +17,10 @@ interface MarkRule extends Mark {
   mark: {
     type: string
   }
+}
+
+interface NodeRule extends Node {
+  node: Node
 }
 
 interface Data {
@@ -45,6 +49,8 @@ interface Data {
 export interface ParseHTMLConfig {
   /** 标签别名，用于更改 tag 名称，也可以根据父子关系修改，如 'audio > p' */
   alias?: Record<string, string>
+  /** 节点覆盖规则，用于自定义节点类型和属性 */
+  nodeRule?: NodeRule[]
   /** 节点解析为编辑器 marks。类似 tiptap 的 mark 规则，将包裹修饰的标签，转换为 marks 属性 */
   markRule?: MarkRule[]
   /** 自定义自闭合标签（注意：如果标签自带反斜杠，则无需配置，例如 `<note />`）*/
@@ -418,8 +424,8 @@ const attrName = (d: Data) => {
 
 const attrValue = (d: Data) => {
   const value = decodeHTML(d.input.slice(d.start, d.index))
-  // 如果是数字，则转为数字类型
-  d.tag!.attrs![d.attrName] = isValidNumber(value) ? Number(value) : value
+  // 如果是数字，则转为数字类型（alt除外）
+  d.tag!.attrs![d.attrName] = (d.attrName !== 'alt' && isValidNumber(value)) ? Number(value) : value
 }
 
 const elementStart = (d: Data, gt?: boolean) => {
@@ -427,6 +433,15 @@ const elementStart = (d: Data, gt?: boolean) => {
   let marks: Mark[] = []
 
   if (d.tag) {
+    if (d.config.nodeRule) {
+      const node = d.config.nodeRule.find(rule => {
+        return rule.type === d.tag!.type && isAttrsInclude(rule.attrs, d.tag!.attrs)
+      })
+
+      // 使用自定义数据覆盖原节点，原节点只保留 content 子节点内容，其他 attrs 数据丢弃
+      if (node) d.tag = node.node
+    }
+
     if (d.config.markRule) {
       // 匹配出 type 和 attrs 都符合的 mark
       marks = d.config.markRule.filter(rule => {

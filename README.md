@@ -30,7 +30,7 @@ parseHTML('<p>123</p>').doc
 ### 配置项
 
 #### alias
-标签别名，用于更改 tag 名称
+标签别名，用于更改 tag 名称，不会修改 attrs 属性
 
 ```js
 parseHTML('<p>123</p>', {
@@ -76,6 +76,43 @@ parseHTML('<audio><p>123</p></audio>', {
   }]
 }
 ```
+
+#### nodeRule
+节点覆盖规则，用于自定义节点类型和属性
+
+注意：
+1. alias 标签别名，优先级更高
+2. 会使用 node 字段数据覆盖原节点，原节点只保留 content 子节点内容，其他 attrs 数据丢弃
+
+```js
+parseHTML('<h1>标题1</h1>', {
+  nodeRule: [{
+    type: 'h1',
+    node: {
+      type: 'heading',
+      attrs: {
+        level: 1
+      }
+    }
+  }]
+})
+
+// result
+{
+  type: 'doc',
+  content: [{
+    type: 'heading',
+    attrs: {
+      level: 1
+    },
+    content: [{
+      type: 'text',
+      text: '标题1'
+    }]
+  }]
+}
+```
+
 
 #### markRule
 节点解析为编辑器 marks。类似 tiptap 的 mark 规则，将包裹修饰的标签，转换为 marks 属性

@@ -640,3 +640,335 @@ test(`多种规则对应用一个 mark <strong>aa</strong><b>bb</b>`, () => {
   })
 })
 
+test(`属性转数字 <img foo="123" alt="123" />`, () => {
+  expect(parseHTML('<img foo="123" alt="123" />').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'img',
+      attrs: {
+        foo: 123,
+        alt: '123'
+      }
+    }]
+  })
+})
+
+test(`节点覆盖规则 <p type="title">标题</p>`, () => {
+  expect(parseHTML('<p type="title">标题</p>', {
+    nodeRule: [{
+      type: 'p',
+      attrs: {type: 'title'},
+      node: {type: 'title'}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'title',
+      content: [{
+        type: 'text',
+        text: '标题'
+      }]
+    }]
+  })
+})
+
+test(`节点覆盖规则 <h1>标题1</h1>`, () => {
+  expect(parseHTML('<h1>标题1</h1>', {
+    nodeRule: [{
+      type: 'h1',
+      node: {
+        type: 'heading',
+        attrs: {
+          level: 1
+        }
+      }
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'heading',
+      attrs: {
+        level: 1
+      },
+      content: [{
+        type: 'text',
+        text: '标题1'
+      }]
+    }]
+  })
+})
+
+test(`别名+节点覆盖 <p type="title">标题</p><p>文字</p>`, () => {
+  expect(parseHTML('<p type="title">标题</p><p>文字</p>', {
+    alias: {
+      'p': 'paragraph'
+    },
+    nodeRule: [{
+      type: 'paragraph',
+      attrs: {type: 'title'},
+      node: {type: 'title'}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'title',
+      content: [{
+        type: 'text',
+        text: '标题'
+      }]
+    },{
+      type: 'paragraph',
+      content: [{
+        type: 'text',
+        text: '文字'
+      }]
+    }]
+  })
+})
+
+
+/**
+ * AI 补充的测试用例，用于提高测试覆盖率
+ */
+
+
+test(`标签属性无引号带空格 <p aa=123 bb=456>789</p>`, () => {
+  expect(parseHTML(`<p aa=123 bb=456>789</p>`).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: { aa: 123, bb: 456 },
+      content: [{ type: 'text', text: '789' }]
+    }]
+  })
+})
+
+test(`标签名中间有 < 号 <p<2>`, () => {
+  expect(parseHTML('<p<2>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p<2'  // 会被当作标签名
+    }]
+  })
+})
+
+test(`带属性的 mark 结束，另一个无属性 mark 开始 <span type="highlight">高亮</span><i>斜体</i>`, () => {
+  expect(parseHTML(`<span type="highlight">高亮</span><i>斜体</i>`, {
+    markRule: [
+      { type: 'span', attrs: { type: 'highlight' }, mark: { type: 'highlight' } },
+      { type: 'i', mark: { type: 'italic' } }
+    ]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [
+      {
+        type: 'text',
+        marks: [{ type: 'highlight' }],
+        text: '高亮'
+      },
+      {
+        type: 'text',
+        marks: [{ type: 'italic' }],
+        text: '斜体'
+      }
+    ]
+  })
+})
+
+// === 未覆盖分支补充 ===
+
+test(`空输入 ''`, () => {
+  expect(parseHTML('').doc).toEqual({ type: 'doc' })
+})
+
+test(`纯文本 'hello world'`, () => {
+  expect(parseHTML('hello world').doc).toEqual({
+    type: 'doc',
+    content: [{ type: 'text', text: 'hello world' }]
+  })
+})
+
+test(`InTagName 遇到 < 且 backwardTo 返回非零 x<p<y>`, () => {
+  expect(parseHTML('x<p<y>').doc).toEqual({
+    type: 'doc',
+    content: [
+      { type: 'text', text: 'x<p' },
+      { type: 'y' }
+    ]
+  })
+})
+
+test(`BeforeAttrName 遇到 < 且 backwardTo 返回非零 <p aa <2>`, () => {
+  expect(parseHTML('<p aa <2>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: { '2': true, aa: true }
+    }]
+  })
+})
+
+test(`BeforeAttrValue 遇到空格 <p aa= bb>text</p>`, () => {
+  expect(parseHTML('<p aa= bb>text</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: { aa: 'bb' },
+      content: [{ type: 'text', text: 'text' }]
+    }]
+  })
+})
+
+test(`InAttrValue 无引号值遇空格 <p aa=bb cc=dd>text</p>`, () => {
+  expect(parseHTML('<p aa=bb cc=dd>text</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: { aa: 'bb', cc: 'dd' },
+      content: [{ type: 'text', text: 'text' }]
+    }]
+  })
+})
+
+test(`finalize 时处于 InTagName 状态 <p`, () => {
+  expect(parseHTML('<p').doc).toEqual({ type: 'doc' })
+})
+
+test(`finalize 时处于 InExclamation 状态 <!--`, () => {
+  expect(parseHTML('<!--').doc).toEqual({ type: 'doc' })
+})
+
+test(`finalize 时处于 InClosingTagName 状态 </p`, () => {
+  expect(parseHTML('</p').doc).toEqual({ type: 'doc' })
+})
+
+test(`HTML 实体 &amp; 在文本中 <p>foo &amp; bar</p>`, () => {
+  expect(parseHTML('<p>foo &amp; bar</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{ type: 'text', text: 'foo & bar' }]
+    }]
+  })
+})
+
+test(`HTML 实体 &amp; 在属性值中 <p title="a &amp; b">text</p>`, () => {
+  expect(parseHTML('<p title="a &amp; b">text</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: { title: 'a & b' },
+      content: [{ type: 'text', text: 'text' }]
+    }]
+  })
+})
+
+test(`isAttrsInclude 规则属性多于标签属性时不匹配 <p a=1>text</p>`, () => {
+  expect(parseHTML('<p a=1>text</p>', {
+    nodeRule: [{ type: 'p', attrs: { a: 1, b: 2 }, node: { type: 'x' } }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      attrs: { a: 1 },
+      content: [{ type: 'text', text: 'text' }]
+    }]
+  })
+})
+
+test(`isAttrsEqual 一方有 attrs 一方无 <span type=highlight color=pink>aa</span><span type=highlight>bb</span>`, () => {
+  expect(parseHTML('<span type="highlight" color="pink">aa</span><span type="highlight">bb</span>', {
+    markRule: [{ type: 'span', attrs: { type: 'highlight' }, mark: { type: 'highlight' } }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [
+      { type: 'text', marks: [{ type: 'highlight', attrs: { color: 'pink' } }], text: 'aa' },
+      { type: 'text', marks: [{ type: 'highlight' }], text: 'bb' }
+    ]
+  })
+})
+
+test(`isAttrsEqual 属性数量不同 <span type=highlight color=pink size=big>aa</span><span type=highlight color=pink>bb</span>`, () => {
+  expect(parseHTML('<span type="highlight" color="pink" size="big">aa</span><span type="highlight" color="pink">bb</span>', {
+    markRule: [{ type: 'span', attrs: { type: 'highlight' }, mark: { type: 'highlight' } }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [
+      { type: 'text', marks: [{ type: 'highlight', attrs: { color: 'pink', size: 'big' } }], text: 'aa' },
+      { type: 'text', marks: [{ type: 'highlight', attrs: { color: 'pink' } }], text: 'bb' }
+    ]
+  })
+})
+
+test(`相邻无 marks 文本节点合并 <p>aa<!-- -->bb</p>`, () => {
+  expect(parseHTML('<p>aa<!-- -->bb</p>').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'p',
+      content: [{ type: 'text', text: 'aabb' }]
+    }]
+  })
+})
+
+test(`自闭合标签带属性 <br class="foo"/>`, () => {
+  expect(parseHTML('<br class="foo"/>').doc).toEqual({
+    type: 'doc',
+    content: [{ type: 'br', attrs: { class: 'foo' } }]
+  })
+})
+
+test(`自定义 selfClose 带属性 <note type="info">text`, () => {
+  expect(parseHTML('<note type="info">text', {
+    selfClose: ['note']
+  }).doc).toEqual({
+    type: 'doc',
+    content: [
+      { type: 'note', attrs: { type: 'info' } },
+      { type: 'text', text: 'text' }
+    ]
+  })
+})
+
+test(`isAttrsEqual 属性相同且值相同，文本合并 <span color=pink>aa</span><span color=pink>bb</span>`, () => {
+  expect(parseHTML('<span type="highlight" color="pink">aa</span><span type="highlight" color="pink">bb</span>', {
+    markRule: [{ type: 'span', attrs: { type: 'highlight' }, mark: { type: 'highlight' } }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'text',
+      marks: [{ type: 'highlight', attrs: { color: 'pink' } }],
+      text: 'aabb'
+    }]
+  })
+})
+
+test(`isAttrsEqual 属性相同但值不同，文本不合并 <span color=pink>aa</span><span color=blue>bb</span>`, () => {
+  expect(parseHTML('<span type="highlight" color="pink">aa</span><span type="highlight" color="blue">bb</span>', {
+    markRule: [{ type: 'span', attrs: { type: 'highlight' }, mark: { type: 'highlight' } }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [
+      { type: 'text', marks: [{ type: 'highlight', attrs: { color: 'pink' } }], text: 'aa' },
+      { type: 'text', marks: [{ type: 'highlight', attrs: { color: 'blue' } }], text: 'bb' }
+    ]
+  })
+})
+
+test(`多余的结束标签导致栈空，后续文本被丢弃 <p></p></p>text`, () => {
+  expect(parseHTML('<p></p></p>text').doc).toEqual({
+    type: 'doc',
+    content: [{ type: 'p' }]
+  })
+})
+
+test(`isMarksEqual marks 数量不同且非零 <b>aa</b><i><b>bb</b></i>`, () => {
+  expect(parseHTML('<b>aa</b><i><b>bb</b></i>', {
+    markRule: [{ type: 'b', mark: { type: 'bold' } }, { type: 'i', mark: { type: 'italic' } }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [
+      { type: 'text', marks: [{ type: 'bold' }], text: 'aa' },
+      { type: 'text', marks: [{ type: 'italic' }, { type: 'bold' }], text: 'bb' }
+    ]
+  })
+})

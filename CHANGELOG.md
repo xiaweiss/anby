@@ -1,3 +1,10 @@
+## 0.1.0 (2026-06-25)
+
+* feat: 支持节点覆盖规则 nodeRule ([3a0c0ae](https://github.com/xiaweiss/anby/commit/3a0c0ae))
+* fix: alt 属性不转数字类型 ([b8fa1ba](https://github.com/xiaweiss/anby/commit/b8fa1ba))
+* chore: 升级依赖，entities 包改为依赖项 ([6d08a77](https://github.com/xiaweiss/anby/commit/6d08a77))
+* test: 使用 AI 补充部分测试用例，以提高测试覆盖率 ([f747c02](https://github.com/xiaweiss/anby/commit/f747c02))
+
 ## <small>0.0.6 (2025-08-26)</small>
 
 * fix: 和 tiptap 保持一致，marks 属性放到 text 之前 ([a8da6b4](https://github.com/xiaweiss/anby/commit/a8da6b4))
