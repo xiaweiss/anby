@@ -640,3 +640,15 @@ test(`多种规则对应用一个 mark <strong>aa</strong><b>bb</b>`, () => {
   })
 })
 
+test(`属性转数字 <img foo="123" alt="123" />`, () => {
+  expect(parseHTML('<img foo="123" alt="123" />').doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'img',
+      attrs: {
+        foo: 123,
+        alt: '123'
+      }
+    }]
+  })
+})

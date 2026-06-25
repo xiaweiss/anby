@@ -418,8 +418,8 @@ const attrName = (d: Data) => {
 
 const attrValue = (d: Data) => {
   const value = decodeHTML(d.input.slice(d.start, d.index))
-  // 如果是数字，则转为数字类型
-  d.tag!.attrs![d.attrName] = isValidNumber(value) ? Number(value) : value
+  // 如果是数字，则转为数字类型（alt除外）
+  d.tag!.attrs![d.attrName] = (d.attrName !== 'alt' && isValidNumber(value)) ? Number(value) : value
 }
 
 const elementStart = (d: Data, gt?: boolean) => {
