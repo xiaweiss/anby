@@ -726,6 +726,54 @@ test(`别名+节点覆盖 <p type="title">标题</p><p>文字</p>`, () => {
   })
 })
 
+test(`节点覆盖规则多节点<h1>1</h1><p>哈哈哈</p><h1>2</h1><h2>22</h2>`, () => {
+  expect(parseHTML(`<h1>1</h1><p>哈哈哈</p><h1>2</h1><h2>22</h2>`, {
+    nodeRule: [{
+      type: 'h1',
+      node: {type: 'heading', attrs: {level: 1}}
+    }, {
+      type: 'h2',
+      node: {type: 'heading', attrs: {level: 2}}
+    }]
+  }).doc).toEqual({
+    type: 'doc',
+    content: [{
+      type: 'heading',
+      attrs: {
+        level: 1
+      },
+      content: [{
+        type: 'text',
+        text: '1'
+      }]
+    },{
+      type: 'p',
+      content: [{
+        type: 'text',
+        text: '哈哈哈'
+      }]
+    },{
+      type: 'heading',
+      attrs: {
+        level: 1
+      },
+      content: [{
+        type: 'text',
+        text: '2'
+      }]
+    },{
+      type: 'heading',
+      attrs: {
+        level: 2
+      },
+      content: [{
+        type: 'text',
+        text: '22'
+      }]
+    }]
+  })
+})
+
 
 /**
  * AI 补充的测试用例，用于提高测试覆盖率

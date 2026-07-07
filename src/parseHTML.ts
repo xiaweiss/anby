@@ -439,7 +439,7 @@ const elementStart = (d: Data, gt?: boolean) => {
       })
 
       // 使用自定义数据覆盖原节点，原节点只保留 content 子节点内容，其他 attrs 数据丢弃
-      if (node) d.tag = node.node
+      if (node) d.tag = {...node.node}
     }
 
     if (d.config.markRule) {
