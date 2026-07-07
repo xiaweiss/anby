@@ -1,3 +1,7 @@
+## <small>0.1.1 (2026-07-07)</small>
+
+* fix: 修复 nodeRule 被重复引用的问题 ([b50a89b](https://github.com/xiaweiss/anby/commit/b50a89b))
+
 ## 0.1.0 (2026-06-25)
 
 * feat: 支持节点覆盖规则 nodeRule ([3a0c0ae](https://github.com/xiaweiss/anby/commit/3a0c0ae))
