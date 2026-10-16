@@ -237,13 +237,13 @@ test('内容有 < 号 <p> 1 < 2 </p>', () => {
 })
 
 test('内容有 < 号 <p>1 < 2</p>', () => {
-  expect(parseHTML('<p> 1 < 2 </p>').doc).toEqual({
+  expect(parseHTML('<p>1 < 2</p>').doc).toEqual({
     type: 'doc',
     content: [{
       type: 'p',
       content: [{
         type: 'text',
-        text: ' 1 < 2 '
+        text: '1 < 2'
       }]
     }]
   })
