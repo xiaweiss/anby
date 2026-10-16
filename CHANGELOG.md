@@ -1,3 +1,7 @@
+## <small>0.1.2 (2026-10-16)</small>
+
+* chore: 升级依赖 ([35e9aa4](https://github.com/xiaweiss/anby/commit/35e9aa4))
+
 ## <small>0.1.1 (2026-07-07)</small>
 
 * fix: 修复 nodeRule 被重复引用的问题 ([b50a89b](https://github.com/xiaweiss/anby/commit/b50a89b))
